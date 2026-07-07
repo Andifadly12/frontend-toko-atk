@@ -1,5 +1,5 @@
-import Text from "./Text";
-import { colors } from "../utils/color";
+import { colors } from "../../utils/color";
+import Text from "../Text";
 
 const Card = ({
   title,

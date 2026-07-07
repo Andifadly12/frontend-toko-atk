@@ -1,143 +1,67 @@
 import Navbar from "../navbar/Navbar";
 import Sidebar from "../sidebar/Sidebar";
+import Card from "../Card";
+import Badge from "../badge";
+import Text from "../Text";
+import  summaryCards  from "../../utils/summaryCars.js";
+import topProducts from "../../utils/topProducts.js";
+import lowStockProducts from "../../utils/lowStockProducts.js";
+
 const Dashboard = () => {
-  const summaryCards = [
-    {
-      title: "Total Penjualan",
-      value: "Rp 2.500.000",
-      description: "Total penjualan bulan ini",
-      color: "text-blue-600",
-    },
-    {
-      title: "Total Pembelian",
-      value: "Rp 1.200.000",
-      description: "Total pembelian barang",
-      color: "text-green-600",
-    },
-    {
-      title: "Total Produk",
-      value: "120",
-      description: "Jumlah produk tersedia",
-      color: "text-slate-800",
-    },
-    {
-      title: "Total Customer",
-      value: "35",
-      description: "Jumlah pelanggan",
-      color: "text-purple-600",
-    },
-    {
-      title: "Total Supplier",
-      value: "8",
-      description: "Jumlah supplier",
-      color: "text-orange-600",
-    },
-    {
-      title: "Stok Rendah",
-      value: "5",
-      description: "Produk hampir habis",
-      color: "text-red-600",
-    },
-  ];
-
-  const topProducts = [
-    {
-      id: 1,
-      name: "Pulpen Pilot",
-      sold: 50,
-      total: "Rp 150.000",
-    },
-    {
-      id: 2,
-      name: "Buku Tulis Sidu",
-      sold: 40,
-      total: "Rp 200.000",
-    },
-    {
-      id: 3,
-      name: "Pensil 2B",
-      sold: 30,
-      total: "Rp 90.000",
-    },
-  ];
-
-  const lowStockProducts = [
-    {
-      id: 1,
-      name: "Penghapus",
-      stock: 5,
-    },
-    {
-      id: 2,
-      name: "Spidol Hitam",
-      stock: 3,
-    },
-    {
-      id: 3,
-      name: "Map Plastik",
-      stock: 0,
-    },
-  ];
+  
+  const handleLogout = () => {
+    alert("Logout nanti disambungkan setelah fitur login dibuat");
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-100">
-      {/* Sidebar */}
       <Sidebar />
 
-      {/* Content */}
       <div className="flex flex-1 flex-col">
-        {/* Navbar */}
-       <Navbar />
+        <Navbar
+          title="Dashboard"
+          subtitle="Ringkasan data Toko ATK"
+          userName="Admin Toko"
+          onLogout={handleLogout}
+        />
 
         <main className="p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-800">
+            <Text as="h1" size="2xl" weight="bold">
               Selamat datang
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            </Text>
+
+            <Text size="sm" color="muted" className="mt-1">
               Ini adalah tampilan dashboard sementara tanpa API.
-            </p>
+            </Text>
           </div>
 
-          {/* Cards */}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {summaryCards.map((card) => (
-              <div
+              <Card
                 key={card.title}
-                className="rounded-2xl bg-white p-6 shadow-sm"
-              >
-                <p className="text-sm font-medium text-slate-500">
-                  {card.title}
-                </p>
-
-                <h3 className={`mt-3 text-3xl font-bold ${card.color}`}>
-                  {card.value}
-                </h3>
-
-                <p className="mt-2 text-sm text-slate-400">
-                  {card.description}
-                </p>
-              </div>
+                title={card.title}
+                value={card.value}
+                description={card.description}
+                variant={card.variant}
+              />
             ))}
           </div>
 
-          {/* Tables */}
           <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            {/* Produk Terlaris */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <Card variant="default" className="border-0">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-800">
+                  <Text as="h3" size="lg" weight="bold">
                     Produk Terlaris
-                  </h3>
-                  <p className="text-sm text-slate-500">
+                  </Text>
+
+                  <Text size="sm" color="muted">
                     Data penjualan sementara
-                  </p>
+                  </Text>
                 </div>
 
-                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                  Top Product
-                </span>
+                <Badge variant="primary">Top Product</Badge>
               </div>
 
               <div className="space-y-4">
@@ -147,37 +71,36 @@ const Dashboard = () => {
                     className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
                   >
                     <div>
-                      <p className="font-semibold text-slate-800">
+                      <Text weight="semibold">
                         {index + 1}. {product.name}
-                      </p>
-                      <p className="text-sm text-slate-500">
+                      </Text>
+
+                      <Text size="sm" color="muted">
                         Terjual: {product.sold}
-                      </p>
+                      </Text>
                     </div>
 
-                    <p className="font-bold text-blue-600">
+                    <Text weight="bold" color="primary">
                       {product.total}
-                    </p>
+                    </Text>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
 
-            {/* Stok Rendah */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <Card variant="default" className="border-0">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-800">
+                  <Text as="h3" size="lg" weight="bold">
                     Produk Stok Rendah
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    Barang yang perlu ditambah
-                  </p>
+                  </Text>
+
+                  <Text size="sm" color="muted">
+                    Barang yang perlu segera ditambah
+                  </Text>
                 </div>
 
-                <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
-                  Warning
-                </span>
+                <Badge variant="warning">Warning</Badge>
               </div>
 
               <div className="space-y-4">
@@ -186,28 +109,22 @@ const Dashboard = () => {
                     key={product.id}
                     className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
                   >
-                    <p className="font-semibold text-slate-800">
-                      {product.name}
-                    </p>
+                    <Text weight="semibold">{product.name}</Text>
 
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        product.stock <= 0
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
+                    <Badge
+                      variant={product.stock <= 0 ? "danger" : "warning"}
                     >
                       Stok: {product.stock}
-                    </span>
+                    </Badge>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
         </main>
       </div>
     </div>
   );
-}
+};
 
 export default Dashboard;
