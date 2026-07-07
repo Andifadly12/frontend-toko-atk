@@ -1,16 +1,21 @@
-import { NavLink } from "react-dom";
+import { NavLink } from "react-router";
+import  menus  from "../../utils/menus";
+import { colors } from "../../utils/color";
 
-
-function Sidebar() {
-  const menus = [
-    { name: "Dashboard", path: "/dashboard" },
-  ];
-
+const Sidebar = () => {
   return (
-    <aside className="min-h-screen w-64 bg-slate-900 px-4 py-6 text-white">
+    <aside
+      className="min-h-screen w-64 px-4 py-6 text-white"
+      style={{ backgroundColor: colors.background.sidebar }}
+    >
       <div className="mb-8 px-2">
         <h1 className="text-2xl font-bold">Toko ATK</h1>
-        <p className="mt-1 text-sm text-slate-400">Admin Panel</p>
+        <p
+          className="mt-1 text-sm"
+          style={{ color: colors.text.light }}
+        >
+          Admin Panel
+        </p>
       </div>
 
       <nav className="space-y-2">
@@ -18,13 +23,11 @@ function Sidebar() {
           <NavLink
             key={menu.path}
             to={menu.path}
-            className={({ isActive }) =>
-              `block rounded-lg px-4 py-3 text-sm font-medium transition ${
-                isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
-              }`
-            }
+            className="block rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-slate-800"
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? colors.primary[600] : "transparent",
+              color: isActive ? colors.text.white : "#cbd5e1",
+            })}
           >
             {menu.name}
           </NavLink>
@@ -32,6 +35,6 @@ function Sidebar() {
       </nav>
     </aside>
   );
-}
+};
 
 export default Sidebar;

@@ -1,9 +1,9 @@
-function Navbar({
+const Navbar = ({
   title = "Dashboard",
   subtitle = "Selamat datang di aplikasi",
   userName = "Admin",
   onLogout,
-}) {
+})=> {
   return (
     <header className="border-b border-slate-200 bg-white px-6 py-4">
       <div className="flex items-center justify-between">
