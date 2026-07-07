@@ -1,11 +1,11 @@
-function Modal({
+const Modal = ({
   isOpen,
   onClose,
   title = "Modal",
   children,
   footer,
   size = "md",
-}) {
+}) => {
   if (!isOpen) return null;
 
   const sizes = {
