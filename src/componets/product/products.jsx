@@ -1,11 +1,12 @@
 import { useState } from "react";
-import Navbar from "../navbar/Navbar";
-import Sidebar from "../sidebar/Sidebar";
-import Button from "../Button";
-import Input from "../Input";
-import Text from "../Text";
-import Badge from "../Badge";
-import Modal from "../Modal";
+import Navbar from "./navbar/Navbar";
+import Sidebar from "./sidebar/Sidebar";
+import Button from "./Button";
+import Input from "./Input";
+import Text from "./Text";
+import Badge from "./Badge";
+import Modal from "./Modal";
+import Table from "./table/Table";
 
 const Products = () => {
   const [products, setProducts] = useState([
@@ -58,6 +59,65 @@ const Products = () => {
     }).format(Number(value || 0));
   };
 
+  const columns = [
+    {
+      key: "name",
+      label: "Produk",
+      render: (item) => <Text weight="semibold">{item.name}</Text>,
+    },
+    {
+      key: "category",
+      label: "Kategori",
+      render: (item) => (
+        <Text size="sm" color="muted">
+          {item.category}
+        </Text>
+      ),
+    },
+    {
+      key: "supplier",
+      label: "Supplier",
+      render: (item) => (
+        <Text size="sm" color="muted">
+          {item.supplier}
+        </Text>
+      ),
+    },
+    {
+      key: "purchase_price",
+      label: "Harga Beli",
+      render: (item) => (
+        <Text size="sm">{formatRupiah(item.purchase_price)}</Text>
+      ),
+    },
+    {
+      key: "selling_price",
+      label: "Harga Jual",
+      render: (item) => (
+        <Text size="sm" weight="semibold" color="primary">
+          {formatRupiah(item.selling_price)}
+        </Text>
+      ),
+    },
+    {
+      key: "stock",
+      label: "Stok",
+      render: (item) => (
+        <Badge
+          variant={
+            item.stock <= 0
+              ? "danger"
+              : item.stock <= 10
+              ? "warning"
+              : "success"
+          }
+        >
+          {item.stock}
+        </Badge>
+      ),
+    },
+  ];
+
   const resetForm = () => {
     setForm({
       name: "",
@@ -67,6 +127,7 @@ const Products = () => {
       selling_price: "",
       stock: "",
     });
+
     setEditId(null);
   };
 
@@ -77,6 +138,7 @@ const Products = () => {
 
   const openEditModal = (product) => {
     setEditId(product.id);
+
     setForm({
       name: product.name,
       category: product.category,
@@ -85,6 +147,7 @@ const Products = () => {
       selling_price: product.selling_price,
       stock: product.stock,
     });
+
     setIsModalOpen(true);
   };
 
@@ -102,6 +165,11 @@ const Products = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!form.name || !form.category || !form.supplier) {
+      alert("Nama produk, kategori, dan supplier wajib diisi");
+      return;
+    }
 
     if (editId) {
       const updatedProducts = products.map((product) =>
@@ -137,7 +205,7 @@ const Products = () => {
   };
 
   const handleDelete = (id) => {
-    const confirmDelete = confirm("Yakin ingin menghapus produk ini?");
+    const confirmDelete = window.confirm("Yakin ingin menghapus produk ini?");
 
     if (confirmDelete) {
       const filteredProducts = products.filter((product) => product.id !== id);
@@ -174,114 +242,30 @@ const Products = () => {
             </Button>
           </div>
 
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-            <table className="w-full border-collapse">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-slate-600">
-                    Produk
-                  </th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-slate-600">
-                    Kategori
-                  </th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-slate-600">
-                    Supplier
-                  </th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-slate-600">
-                    Harga Beli
-                  </th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-slate-600">
-                    Harga Jual
-                  </th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-slate-600">
-                    Stok
-                  </th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-slate-600">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
+          <Table
+            columns={columns}
+            data={products}
+            emptyMessage="Belum ada data produk"
+            actions={(item) => (
+              <>
+                <Button
+                  size="sm"
+                  variant="warning"
+                  onClick={() => openEditModal(item)}
+                >
+                  Edit
+                </Button>
 
-              <tbody>
-                {products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className="border-t border-slate-100 hover:bg-slate-50"
-                  >
-                    <td className="px-5 py-4">
-                      <Text weight="semibold">{product.name}</Text>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <Text size="sm" color="muted">
-                        {product.category}
-                      </Text>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <Text size="sm" color="muted">
-                        {product.supplier}
-                      </Text>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <Text size="sm">
-                        {formatRupiah(product.purchase_price)}
-                      </Text>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <Text size="sm" weight="semibold" color="primary">
-                        {formatRupiah(product.selling_price)}
-                      </Text>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <Badge
-                        variant={
-                          product.stock <= 0
-                            ? "danger"
-                            : product.stock <= 10
-                            ? "warning"
-                            : "success"
-                        }
-                      >
-                        {product.stock}
-                      </Badge>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="warning"
-                          onClick={() => openEditModal(product)}
-                        >
-                          Edit
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          onClick={() => handleDelete(product.id)}
-                        >
-                          Hapus
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-
-                {products.length === 0 && (
-                  <tr>
-                    <td colSpan="7" className="px-5 py-10 text-center">
-                      <Text color="muted">Belum ada data produk.</Text>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() => handleDelete(item.id)}
+                >
+                  Hapus
+                </Button>
+              </>
+            )}
+          />
         </main>
       </div>
 
@@ -302,7 +286,10 @@ const Products = () => {
           </>
         }
       >
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 gap-4 md:grid-cols-2"
+        >
           <Input
             label="Nama Produk"
             name="name"
