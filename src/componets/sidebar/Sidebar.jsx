@@ -1,6 +1,7 @@
 import { NavLink } from "react-router";
-import  menus  from "../../utils/menus";
+import menus from "../../utils/menus";
 import { colors } from "../../utils/color";
+import Text from "../Text";
 
 const Sidebar = () => {
   return (
@@ -9,13 +10,17 @@ const Sidebar = () => {
       style={{ backgroundColor: colors.background.sidebar }}
     >
       <div className="mb-8 px-2">
-        <h1 className="text-2xl font-bold">Toko ATK</h1>
-        <p
-          className="mt-1 text-sm"
+        <Text as="h1" size="2xl" weight="bold" color="white">
+          Toko ATK
+        </Text>
+
+        <Text
+          size="sm"
+          className="mt-1"
           style={{ color: colors.text.light }}
         >
           Admin Panel
-        </p>
+        </Text>
       </div>
 
       <nav className="space-y-2">
@@ -29,7 +34,9 @@ const Sidebar = () => {
               color: isActive ? colors.text.white : "#cbd5e1",
             })}
           >
-            {menu.name}
+            <Text as="span" size="sm" weight="medium" color="white">
+              {menu.name}
+            </Text>
           </NavLink>
         ))}
       </nav>
