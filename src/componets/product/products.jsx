@@ -1,12 +1,12 @@
 import { useState } from "react";
-import Navbar from "./navbar/Navbar";
-import Sidebar from "./sidebar/Sidebar";
-import Button from "./Button";
-import Input from "./Input";
-import Text from "./Text";
-import Badge from "./Badge";
-import Modal from "./Modal";
-import Table from "./table/Table";
+import Navbar from "../Navbar";
+import Sidebar from "../Sidebar";
+import Button from "../Button";
+import Input from "../Input";
+import Text from "../Text";
+import Badge from "../Badge";
+import Modal from "../Modal";
+import Table from "../Table";
 
 const Products = () => {
   const [products, setProducts] = useState([
