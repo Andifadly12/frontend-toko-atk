@@ -2,46 +2,21 @@ import { useState } from "react";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import Button from "../Button";
-import Input from "../Input";
+import productFormData from "../../data/productFromData";
 import Text from "../Text";
 import Badge from "../Badge";
 import Modal from "../Modal";
 import Table from "../Table";
-
+import productsData from "../../data/productsData";
+import Form from "../form";
 const Products = () => {
   const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Pulpen Pilot",
-      category: "Alat Tulis",
-      supplier: "PT Sumber ATK",
-      purchase_price: 2500,
-      selling_price: 3000,
-      stock: 100,
-    },
-    {
-      id: 2,
-      name: "Buku Tulis Sidu",
-      category: "Buku",
-      supplier: "CV Buku Jaya",
-      purchase_price: 4000,
-      selling_price: 5000,
-      stock: 50,
-    },
-    {
-      id: 3,
-      name: "Spidol Hitam",
-      category: "Alat Tulis",
-      supplier: "PT Sumber ATK",
-      purchase_price: 6000,
-      selling_price: 8000,
-      stock: 5,
-    },
+    productsData
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-
+  const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
     name: "",
     category: "",
@@ -127,7 +102,7 @@ const Products = () => {
       selling_price: "",
       stock: "",
     });
-
+    setErrors();
     setEditId(null);
   };
 
@@ -147,7 +122,7 @@ const Products = () => {
       selling_price: product.selling_price,
       stock: product.stock,
     });
-
+    setErrors()
     setIsModalOpen(true);
   };
 
@@ -160,6 +135,10 @@ const Products = () => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
+    });
+    setErrors({
+      ...errors,
+      [e.target.name]: "",
     });
   };
 
@@ -227,16 +206,6 @@ const Products = () => {
 
         <main className="p-6">
           <div className="mb-6 flex items-center justify-between">
-            <div>
-              <Text as="h1" size="2xl" weight="bold">
-                Data Produk
-              </Text>
-
-              <Text size="sm" color="muted" className="mt-1">
-                Tambah, edit, dan hapus data produk.
-              </Text>
-            </div>
-
             <Button variant="success" onClick={openAddModal}>
               Tambah Produk
             </Button>
@@ -286,71 +255,13 @@ const Products = () => {
           </>
         }
       >
-        <form
+         <Form
+          fields={productFormData}
+          form={form}
+          errors={errors}
+          onChange={handleChange}
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 gap-4 md:grid-cols-2"
-        >
-          <Input
-            label="Nama Produk"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Contoh: Pulpen Pilot"
-            required
-          />
-
-          <Input
-            label="Kategori"
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            placeholder="Contoh: Alat Tulis"
-            required
-          />
-
-          <Input
-            label="Supplier"
-            name="supplier"
-            value={form.supplier}
-            onChange={handleChange}
-            placeholder="Contoh: PT Sumber ATK"
-            required
-          />
-
-          <Input
-            label="Harga Beli"
-            type="number"
-            name="purchase_price"
-            value={form.purchase_price}
-            onChange={handleChange}
-            placeholder="Contoh: 2500"
-            required
-          />
-
-          <Input
-            label="Harga Jual"
-            type="number"
-            name="selling_price"
-            value={form.selling_price}
-            onChange={handleChange}
-            placeholder="Contoh: 3000"
-            required
-          />
-
-          <Input
-            label="Stok"
-            type="number"
-            name="stock"
-            value={form.stock}
-            onChange={handleChange}
-            placeholder="Contoh: 100"
-            required
-          />
-
-          <button type="submit" className="hidden">
-            Submit
-          </button>
-        </form>
+        />
       </Modal>
     </div>
   );
