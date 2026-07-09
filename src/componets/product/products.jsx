@@ -9,9 +9,9 @@ import productsData from "../../data/productsData";
 import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
 const Products = () => {
-  const [products, setProducts] = useState([
+  const [products, setProducts] = useState(
     productsData
-  ]);
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
