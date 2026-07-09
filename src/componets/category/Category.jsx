@@ -14,6 +14,7 @@ import categorySchema from "../../utils/categorySchema";
 import handleSubmitData from "../../utils/handlesubmit";
 import categorysData from "../../data/categorysData";
 import initialCategories from "../../data/initialCategories.js";
+import useDebounce from "../../hooks/useDebounce.js";
 
 const initialCategoryForm = {
   name: "",
@@ -24,10 +25,9 @@ const initialCategoryForm = {
 
 const Category = () => {
   const [categories, setCategories] = useState(initialCategories);
-  const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-
+  const [search, setSearch] = useState("");
   const {
     form,
     setForm,
@@ -36,9 +36,9 @@ const Category = () => {
     handleChange,
     resetForm,
   } = useForm(initialCategoryForm);
-
+  const debouncedSearch = useDebounce(search, 500);
   const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(search.toLowerCase())
+    category.name.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   const openAddModal = () => {
