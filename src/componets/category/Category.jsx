@@ -7,7 +7,7 @@ import Input from "../input";
 import Modal from "../modal";
 import Table from "../table";
 import Form from "../form";
-import columnCategory from "../columnsCategory/ColumnsCategory.jsx";
+import columnCategory from "../ColumnsCategory";
 import categorySchema from "../../utils/categorySchema";
 import handleSubmitData from "../../utils/handlesubmit";
 import categorysData from "../../data/categorysData";

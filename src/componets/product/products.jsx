@@ -3,12 +3,11 @@ import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import Button from "../Button";
 import productFormData from "../../data/productFromData";
-import Text from "../Text";
-import Badge from "../Badge";
 import Modal from "../Modal";
 import Table from "../Table";
 import productsData from "../../data/productsData";
 import Form from "../form";
+import columnsProducts from "../columnsProducts/columnsProducts";
 const Products = () => {
   const [products, setProducts] = useState([
     productsData
@@ -25,73 +24,7 @@ const Products = () => {
     selling_price: "",
     stock: "",
   });
-
-  const formatRupiah = (value) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(Number(value || 0));
-  };
-
-  const columns = [
-    {
-      key: "name",
-      label: "Produk",
-      render: (item) => <Text weight="semibold">{item.name}</Text>,
-    },
-    {
-      key: "category",
-      label: "Kategori",
-      render: (item) => (
-        <Text size="sm" color="muted">
-          {item.category}
-        </Text>
-      ),
-    },
-    {
-      key: "supplier",
-      label: "Supplier",
-      render: (item) => (
-        <Text size="sm" color="muted">
-          {item.supplier}
-        </Text>
-      ),
-    },
-    {
-      key: "purchase_price",
-      label: "Harga Beli",
-      render: (item) => (
-        <Text size="sm">{formatRupiah(item.purchase_price)}</Text>
-      ),
-    },
-    {
-      key: "selling_price",
-      label: "Harga Jual",
-      render: (item) => (
-        <Text size="sm" weight="semibold" color="primary">
-          {formatRupiah(item.selling_price)}
-        </Text>
-      ),
-    },
-    {
-      key: "stock",
-      label: "Stok",
-      render: (item) => (
-        <Badge
-          variant={
-            item.stock <= 0
-              ? "danger"
-              : item.stock <= 10
-              ? "warning"
-              : "success"
-          }
-        >
-          {item.stock}
-        </Badge>
-      ),
-    },
-  ];
+  
 
   const resetForm = () => {
     setForm({
@@ -212,7 +145,7 @@ const Products = () => {
           </div>
 
           <Table
-            columns={columns}
+            columns={columnsProducts}
             data={products}
             emptyMessage="Belum ada data produk"
             actions={(item) => (
