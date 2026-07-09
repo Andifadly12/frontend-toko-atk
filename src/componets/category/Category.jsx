@@ -6,6 +6,8 @@ import Button from "../button";
 import Input from "../input";
 import Modal from "../modal";
 import Table from "../table";
+import Form from "../form";
+
 import useForm from "../../hooks/useForm.js";
 import columnCategory from "../ColumnsCategory";
 import categorySchema from "../../utils/categorySchema";
@@ -13,41 +15,35 @@ import handleSubmitData from "../../utils/handlesubmit";
 import categorysData from "../../data/categorysData";
 import initialCategories from "../../data/initialCategories.js";
 
+const initialCategoryForm = {
+  name: "",
+  description: "",
+  total_products: "",
+  status: "active",
+};
 
 const Category = () => {
   const [categories, setCategories] = useState(initialCategories);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [errors, setErrors] = useState({});
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    total_products: "",
-    status: "active",
-  });
+  const {
+    form,
+    setForm,
+    errors,
+    setErrors,
+    handleChange,
+    resetForm,
+  } = useForm(initialCategoryForm);
 
   const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  
-
-  const resetForm = () => {
-    setForm({
-      name: "",
-      description: "",
-      total_products: "",
-      status: "active",
-    });
-
-    setEditId(null);
-    setErrors({});
-  };
-
   const openAddModal = () => {
     resetForm();
+    setEditId(null);
     setIsModalOpen(true);
   };
 
@@ -68,18 +64,7 @@ const Category = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     resetForm();
-  };
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-    });
+    setEditId(null);
   };
 
   const handleSubmit = (e) => {
