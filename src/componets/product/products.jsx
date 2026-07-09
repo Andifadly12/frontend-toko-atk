@@ -9,9 +9,7 @@ import productsData from "../../data/productsData";
 import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
 const Products = () => {
-  const [products, setProducts] = useState(
-    productsData
-  );
+  const [products, setProducts] = useState(productsData);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -24,7 +22,6 @@ const Products = () => {
     selling_price: "",
     stock: "",
   });
-  
 
   const resetForm = () => {
     setForm({
@@ -44,7 +41,7 @@ const Products = () => {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (product) => {
+  const openEditModal = product => {
     setEditId(product.id);
 
     setForm({
@@ -55,7 +52,7 @@ const Products = () => {
       selling_price: product.selling_price,
       stock: product.stock,
     });
-    setErrors()
+    setErrors();
     setIsModalOpen(true);
   };
 
@@ -64,7 +61,7 @@ const Products = () => {
     resetForm();
   };
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
@@ -75,7 +72,7 @@ const Products = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
 
     if (!form.name || !form.category || !form.supplier) {
@@ -84,7 +81,7 @@ const Products = () => {
     }
 
     if (editId) {
-      const updatedProducts = products.map((product) =>
+      const updatedProducts = products.map(product =>
         product.id === editId
           ? {
               ...product,
@@ -95,7 +92,7 @@ const Products = () => {
               selling_price: Number(form.selling_price),
               stock: Number(form.stock),
             }
-          : product
+          : product,
       );
 
       setProducts(updatedProducts);
@@ -116,11 +113,11 @@ const Products = () => {
     closeModal();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = id => {
     const confirmDelete = window.confirm("Yakin ingin menghapus produk ini?");
 
     if (confirmDelete) {
-      const filteredProducts = products.filter((product) => product.id !== id);
+      const filteredProducts = products.filter(product => product.id !== id);
       setProducts(filteredProducts);
     }
   };
@@ -148,7 +145,7 @@ const Products = () => {
             columns={columnsProducts}
             data={products}
             emptyMessage="Belum ada data produk"
-            actions={(item) => (
+            actions={item => (
               <>
                 <Button
                   size="sm"
@@ -188,7 +185,7 @@ const Products = () => {
           </>
         }
       >
-         <Form
+        <Form
           fields={productFormData}
           form={form}
           errors={errors}

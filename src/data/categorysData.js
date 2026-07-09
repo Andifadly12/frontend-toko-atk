@@ -37,5 +37,4 @@ const categorysData = [
   },
 ];
 
-
 export default categorysData;

@@ -15,7 +15,7 @@ const Form = ({
 }) => {
   return (
     <form onSubmit={onSubmit} className={className}>
-      {fields.map((field) => {
+      {fields.map(field => {
         if (field.type === "select") {
           return (
             <div key={field.name} className="w-full">
@@ -36,11 +36,9 @@ const Form = ({
                     : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 } disabled:cursor-not-allowed disabled:bg-slate-100`}
               >
-                <option value="">
-                  {field.placeholder || "Pilih data"}
-                </option>
+                <option value="">{field.placeholder || "Pilih data"}</option>
 
-                {(field.options || []).map((option) => (
+                {(field.options || []).map(option => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>

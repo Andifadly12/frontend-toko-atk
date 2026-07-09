@@ -33,15 +33,8 @@ const Category = () => {
 
   const { isModalOpen, openModal, closeModal } = useModal();
 
-  const {
-    form,
-    setForm,
-    errors,
-    setErrors,
-    handleChange,
-    resetForm,
-
-  } = useForm(initialCategoryForm);
+  const { form, setForm, errors, setErrors, handleChange, resetForm } =
+    useForm(initialCategoryForm);
 
   const { search, setSearch, filteredData } = useSearch(categories, [
     "name",
@@ -49,13 +42,8 @@ const Category = () => {
     "status",
   ]);
 
-  const {
-    currentPage,
-    totalPages,
-    paginatedData,
-    nextPage,
-    prevPage,
-  } = usePagination(filteredData, 5);
+  const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
+    usePagination(filteredData, 5);
 
   const openAddModal = () => {
     resetForm();
@@ -63,7 +51,7 @@ const Category = () => {
     openModal();
   };
 
-  const openEditModal = (category) => {
+  const openEditModal = category => {
     setEditId(category.id);
 
     setForm({
@@ -83,7 +71,7 @@ const Category = () => {
     setEditId(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     handleSubmitData({
       e,
       schema: categorySchema,
@@ -96,14 +84,12 @@ const Category = () => {
     });
   };
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm(
-      "Yakin ingin menghapus kategori ini?"
-    );
+  const handleDelete = id => {
+    const confirmDelete = window.confirm("Yakin ingin menghapus kategori ini?");
 
     if (confirmDelete) {
       const filteredCategories = categories.filter(
-        (category) => category.id !== id
+        category => category.id !== id,
       );
 
       setCategories(filteredCategories);
@@ -134,7 +120,7 @@ const Category = () => {
               label="Cari Kategori"
               name="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={e => setSearch(e.target.value)}
               placeholder="Cari nama kategori..."
             />
           </div>
@@ -143,7 +129,7 @@ const Category = () => {
             columns={columnCategory}
             data={paginatedData}
             emptyMessage="Belum ada data kategori"
-            actions={(item) => (
+            actions={item => (
               <>
                 <Button
                   size="sm"
@@ -187,8 +173,8 @@ const Category = () => {
             >
               Next
             </Button>
-        </div>
-</footer>
+          </div>
+        </footer>
       </div>
       <Modal
         isOpen={isModalOpen}

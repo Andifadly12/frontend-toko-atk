@@ -50,4 +50,4 @@ const productFormData = [
   },
 ];
 
-export default productFormData
+export default productFormData;

@@ -18,9 +18,9 @@ const router = createBrowserRouter([
     Component: Products,
   },
   {
-    path: '/categorys',
-    Component: Category
-  }
+    path: "/categorys",
+    Component: Category,
+  },
 ]);
 
 export default router;

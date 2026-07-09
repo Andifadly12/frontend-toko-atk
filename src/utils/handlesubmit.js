@@ -15,7 +15,7 @@ const handleSubmitData = ({
   if (!result.success) {
     const fieldErrors = {};
 
-    result.error.issues.forEach((issue) => {
+    result.error.issues.forEach(issue => {
       fieldErrors[issue.path[0]] = issue.message;
     });
 
@@ -28,13 +28,13 @@ const handleSubmitData = ({
   const validatedData = result.data;
 
   if (editId) {
-    const updatedData = data.map((item) =>
+    const updatedData = data.map(item =>
       item.id === editId
         ? {
             ...item,
             ...validatedData,
           }
-        : item
+        : item,
     );
 
     setData(updatedData);

@@ -14,7 +14,9 @@ function Loading({ text = "Loading...", fullPage = false }) {
     );
   }
 
-  return <div className="flex items-center justify-center py-10">{content}</div>;
+  return (
+    <div className="flex items-center justify-center py-10">{content}</div>
+  );
 }
 
 export default Loading;

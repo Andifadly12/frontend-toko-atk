@@ -22,5 +22,4 @@ const initialCategories = [
   },
 ];
 
-
-export default initialCategories
+export default initialCategories;

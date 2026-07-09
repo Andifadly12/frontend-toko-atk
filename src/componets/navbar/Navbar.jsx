@@ -3,7 +3,7 @@ const Navbar = ({
   subtitle = "Selamat datang di aplikasi",
   userName = "Admin",
   onLogout,
-})=> {
+}) => {
   return (
     <header className="border-b border-slate-200 bg-white px-6 py-4">
       <div className="flex items-center justify-between">
@@ -29,6 +29,6 @@ const Navbar = ({
       </div>
     </header>
   );
-}
+};
 
 export default Navbar;

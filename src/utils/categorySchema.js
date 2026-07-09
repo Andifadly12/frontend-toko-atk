@@ -5,9 +5,7 @@ const categorySchema = z.object({
 
   description: z.string().optional(),
 
-  total_products: z.coerce
-    .number()
-    .min(0, "Jumlah produk tidak boleh minus"),
+  total_products: z.coerce.number().min(0, "Jumlah produk tidak boleh minus"),
 
   status: z.enum(["active", "inactive"], {
     message: "Status wajib dipilih",

@@ -16,7 +16,8 @@ function Button({
     success: "bg-green-600 text-white hover:bg-green-700",
     danger: "bg-red-600 text-white hover:bg-red-700",
     warning: "bg-yellow-500 text-white hover:bg-yellow-600",
-    outline: "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100",
+    outline:
+      "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100",
   };
 
   const sizes = {

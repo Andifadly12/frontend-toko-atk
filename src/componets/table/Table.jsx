@@ -12,7 +12,7 @@ const Table = ({
         <table className="w-full border-collapse">
           <thead className="bg-slate-50">
             <tr>
-              {columns.map((column) => (
+              {columns.map(column => (
                 <th
                   key={column.key}
                   className={`px-5 py-4 text-left text-sm font-semibold text-slate-600 ${
@@ -38,7 +38,7 @@ const Table = ({
                   key={item.id || index}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
-                  {columns.map((column) => (
+                  {columns.map(column => (
                     <td
                       key={column.key}
                       className={`px-5 py-4 text-sm text-slate-700 ${

@@ -1,10 +1,4 @@
-function Alert({
-  type = "success",
-  title,
-  message,
-  onClose,
-  className = "",
-}) {
+function Alert({ type = "success", title, message, onClose, className = "" }) {
   const styles = {
     success: "bg-green-50 text-green-700 border-green-200",
     danger: "bg-red-50 text-red-700 border-red-200",
@@ -13,9 +7,7 @@ function Alert({
   };
 
   return (
-    <div
-      className={`rounded-lg border px-4 py-3 ${styles[type]} ${className}`}
-    >
+    <div className={`rounded-lg border px-4 py-3 ${styles[type]} ${className}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
           {title && <h4 className="font-semibold">{title}</h4>}

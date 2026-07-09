@@ -3,12 +3,11 @@ import Sidebar from "../sidebar/Sidebar";
 import Card from "../Card";
 import Badge from "../badge";
 import Text from "../Text";
-import  summaryCards  from "../../utils/summaryCars.js";
+import summaryCards from "../../utils/summaryCars.js";
 import topProducts from "../../utils/topProducts.js";
 import lowStockProducts from "../../utils/lowStockProducts.js";
 
 const Dashboard = () => {
-  
   const handleLogout = () => {
     alert("Logout nanti disambungkan setelah fitur login dibuat");
   };
@@ -37,7 +36,7 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {summaryCards.map((card) => (
+            {summaryCards.map(card => (
               <Card
                 key={card.title}
                 title={card.title}
@@ -104,16 +103,14 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-4">
-                {lowStockProducts.map((product) => (
+                {lowStockProducts.map(product => (
                   <div
                     key={product.id}
                     className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
                   >
                     <Text weight="semibold">{product.name}</Text>
 
-                    <Badge
-                      variant={product.stock <= 0 ? "danger" : "warning"}
-                    >
+                    <Badge variant={product.stock <= 0 ? "danger" : "warning"}>
                       Stok: {product.stock}
                     </Badge>
                   </div>

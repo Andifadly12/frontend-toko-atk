@@ -1,3 +1,3 @@
 import columnCategory from "./ColumnsCategory";
 
-export default columnCategory
+export default columnCategory;

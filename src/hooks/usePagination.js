@@ -12,20 +12,20 @@ const usePagination = (data = [], itemsPerPage = 5) => {
   const paginatedData = data.slice(startIndex, endIndex);
 
   const nextPage = () => {
-    setCurrentPage((prev) => {
+    setCurrentPage(prev => {
       if (prev >= totalPages) return prev;
       return prev + 1;
     });
   };
 
   const prevPage = () => {
-    setCurrentPage((prev) => {
+    setCurrentPage(prev => {
       if (prev <= 1) return prev;
       return prev - 1;
     });
   };
 
-  const goToPage = (page) => {
+  const goToPage = page => {
     if (page < 1) return;
     if (page > totalPages) return;
 

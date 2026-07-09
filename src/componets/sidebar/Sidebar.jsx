@@ -14,17 +14,13 @@ const Sidebar = () => {
           Toko ATK
         </Text>
 
-        <Text
-          size="sm"
-          className="mt-1"
-          style={{ color: colors.text.light }}
-        >
+        <Text size="sm" className="mt-1" style={{ color: colors.text.light }}>
           Admin Panel
         </Text>
       </div>
 
       <nav className="space-y-2">
-        {menus.map((menu) => (
+        {menus.map(menu => (
           <NavLink
             key={menu.path}
             to={menu.path}
