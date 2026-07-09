@@ -16,6 +16,7 @@ import categorysData from "../../data/categorysData";
 import initialCategories from "../../data/initialCategories.js";
 import useDebounce from "../../hooks/useDebounce.js";
 import useModal from "../../hooks/useModal.js";
+import useSearch from "../../hooks/useSearch.js";
 const initialCategoryForm = {
   name: "",
   description: "",
@@ -27,7 +28,11 @@ const Category = () => {
   const [categories, setCategories] = useState(initialCategories);
   const [editId, setEditId] = useState(null);
   const { isModalOpen, openModal, closeModal } = useModal();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useSearch(categories, [
+    "name",
+    "description",
+    "status",
+  ])
 
   const {
     form,
