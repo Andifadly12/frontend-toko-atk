@@ -5,11 +5,10 @@ import Sidebar from "../sidebar";
 import Button from "../button";
 import Input from "../input";
 import Text from "../Text";
-import Badge from "../badge";
 import Modal from "../modal";
 import Table from "../table";
 import Form from "../form";
-
+import columnCategory from "../columnsCategory/ColumnsCategory.jsx";
 import categorySchema from "../../utils/categorySchema";
 import handleSubmitData from "../../utils/handlesubmit";
 import categorysData from "../../data/categorysData";
@@ -34,38 +33,7 @@ const Category = () => {
     category.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const columns = [
-    {
-      key: "name",
-      label: "Nama Kategori",
-      render: (item) => <Text weight="semibold">{item.name}</Text>,
-    },
-    {
-      key: "description",
-      label: "Deskripsi",
-      render: (item) => (
-        <Text size="sm" color="muted">
-          {item.description || "-"}
-        </Text>
-      ),
-    },
-    {
-      key: "total_products",
-      label: "Jumlah Produk",
-      render: (item) => (
-        <Badge variant="primary">{item.total_products} Produk</Badge>
-      ),
-    },
-    {
-      key: "status",
-      label: "Status",
-      render: (item) => (
-        <Badge variant={item.status === "active" ? "success" : "danger"}>
-          {item.status === "active" ? "Aktif" : "Tidak Aktif"}
-        </Badge>
-      ),
-    },
-  ];
+  
 
   const resetForm = () => {
     setForm({
@@ -179,7 +147,7 @@ const Category = () => {
           </div>
 
           <Table
-            columns={columns}
+            columns={columnCategory}
             data={filteredCategories}
             emptyMessage="Belum ada data kategori"
             actions={(item) => (
