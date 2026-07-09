@@ -40,6 +40,7 @@ const Category = () => {
     setErrors,
     handleChange,
     resetForm,
+
   } = useForm(initialCategoryForm);
 
   const { search, setSearch, filteredData } = useSearch(categories, [
@@ -162,7 +163,8 @@ const Category = () => {
               </>
             )}
           />
-
+        </main>
+        <footer className="mt-auto py-4">
           <div className="mt-4 flex items-center justify-center gap-3">
             <Button
               variant="outline"
@@ -185,10 +187,9 @@ const Category = () => {
             >
               Next
             </Button>
-          </div>
-        </main>
+        </div>
+</footer>
       </div>
-
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
