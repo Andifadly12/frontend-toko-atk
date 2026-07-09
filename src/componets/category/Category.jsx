@@ -15,7 +15,7 @@ import handleSubmitData from "../../utils/handlesubmit";
 import categorysData from "../../data/categorysData";
 import initialCategories from "../../data/initialCategories.js";
 import useDebounce from "../../hooks/useDebounce.js";
-
+import useModal from "../../hooks/useModal.js";
 const initialCategoryForm = {
   name: "",
   description: "",
@@ -25,9 +25,10 @@ const initialCategoryForm = {
 
 const Category = () => {
   const [categories, setCategories] = useState(initialCategories);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+  const { isModalOpen, openModal, closeModal } = useModal();
   const [search, setSearch] = useState("");
+
   const {
     form,
     setForm,
@@ -41,10 +42,10 @@ const Category = () => {
     category.name.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-  const openAddModal = () => {
+   const openAddModal = () => {
     resetForm();
     setEditId(null);
-    setIsModalOpen(true);
+    openModal();
   };
 
   const openEditModal = (category) => {
@@ -58,11 +59,11 @@ const Category = () => {
     });
 
     setErrors({});
-    setIsModalOpen(true);
+    openModal();
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const handleCloseModal = () => {
+    closeModal();
     resetForm();
     setEditId(null);
   };
@@ -154,7 +155,7 @@ const Category = () => {
         size="md"
         footer={
           <>
-            <Button variant="outline" onClick={closeModal}>
+            <Button variant="outline" onClick={handleCloseModal}>
               Batal
             </Button>
 
@@ -177,3 +178,10 @@ const Category = () => {
 };
 
 export default Category;
+
+
+
+
+
+
+
