@@ -4,7 +4,6 @@ import Navbar from "../navbar";
 import Sidebar from "../sidebar";
 import Button from "../button";
 import Input from "../input";
-import Text from "../Text";
 import Modal from "../modal";
 import Table from "../table";
 import Form from "../form";
@@ -121,16 +120,6 @@ const Category = () => {
 
         <main className="p-6">
           <div className="mb-6 flex items-center justify-between">
-            <div>
-              <Text as="h1" size="2xl" weight="bold">
-                Data Kategori
-              </Text>
-
-              <Text size="sm" color="muted" className="mt-1">
-                Tambah, edit, dan hapus kategori produk.
-              </Text>
-            </div>
-
             <Button variant="success" onClick={openAddModal}>
               Tambah Kategori
             </Button>
