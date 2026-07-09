@@ -8,15 +8,18 @@ import Modal from "../modal";
 import Table from "../table";
 import Form from "../form";
 
-import useForm from "../../hooks/useForm.js";
+import useForm from "../../hooks/useForm";
+import useModal from "../../hooks/useModal";
+import useSearch from "../../hooks/useSearch";
+import usePagination from "../../hooks/usePagination";
+
 import columnCategory from "../ColumnsCategory";
 import categorySchema from "../../utils/categorySchema";
 import handleSubmitData from "../../utils/handlesubmit";
+
 import categorysData from "../../data/categorysData";
-import initialCategories from "../../data/initialCategories.js";
-import useModal from "../../hooks/useModal.js";
-import useSearch from "../../hooks/useSearch.js";
-import usePagination from "../../hooks/usePagination.js";
+import initialCategories from "../../data/initialCategories";
+
 const initialCategoryForm = {
   name: "",
   description: "",
@@ -27,12 +30,8 @@ const initialCategoryForm = {
 const Category = () => {
   const [categories, setCategories] = useState(initialCategories);
   const [editId, setEditId] = useState(null);
+
   const { isModalOpen, openModal, closeModal } = useModal();
-  const [search, setSearch, filteredData] = useSearch(categories, [
-    "name",
-    "description",
-    "status",
-  ])
 
   const {
     form,
@@ -43,6 +42,12 @@ const Category = () => {
     resetForm,
   } = useForm(initialCategoryForm);
 
+  const { search, setSearch, filteredData } = useSearch(categories, [
+    "name",
+    "description",
+    "status",
+  ]);
+
   const {
     currentPage,
     totalPages,
@@ -51,7 +56,7 @@ const Category = () => {
     prevPage,
   } = usePagination(filteredData, 5);
 
-   const openAddModal = () => {
+  const openAddModal = () => {
     resetForm();
     setEditId(null);
     openModal();
@@ -86,7 +91,7 @@ const Category = () => {
       data: categories,
       setData: setCategories,
       setErrors,
-      closeModal,
+      closeModal: handleCloseModal,
     });
   };
 
@@ -96,8 +101,11 @@ const Category = () => {
     );
 
     if (confirmDelete) {
-      const filteredData = categories.filter((category) => category.id !== id);
-      setCategories(filteredData);
+      const filteredCategories = categories.filter(
+        (category) => category.id !== id
+      );
+
+      setCategories(filteredCategories);
     }
   };
 
@@ -154,7 +162,8 @@ const Category = () => {
               </>
             )}
           />
-           <div className="mt-4 flex items-center justify-end gap-3">
+
+          <div className="mt-4 flex items-center justify-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -179,10 +188,10 @@ const Category = () => {
           </div>
         </main>
       </div>
-        
+
       <Modal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={handleCloseModal}
         title={editId ? "Edit Kategori" : "Tambah Kategori"}
         size="md"
         footer={
@@ -210,10 +219,3 @@ const Category = () => {
 };
 
 export default Category;
-
-
-
-
-
-
-
