@@ -8,8 +8,8 @@ const menus = [
     path: "/products",
   },
   {
-    name: "Categories",
-    path: "/categories",
+    name: "category",
+    path: "/categorys",
   },
   {
     name: "Customers",
