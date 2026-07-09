@@ -14,9 +14,9 @@ import categorySchema from "../../utils/categorySchema";
 import handleSubmitData from "../../utils/handlesubmit";
 import categorysData from "../../data/categorysData";
 import initialCategories from "../../data/initialCategories.js";
-import useDebounce from "../../hooks/useDebounce.js";
 import useModal from "../../hooks/useModal.js";
 import useSearch from "../../hooks/useSearch.js";
+import usePagination from "../../hooks/usePagination.js";
 const initialCategoryForm = {
   name: "",
   description: "",
@@ -28,7 +28,7 @@ const Category = () => {
   const [categories, setCategories] = useState(initialCategories);
   const [editId, setEditId] = useState(null);
   const { isModalOpen, openModal, closeModal } = useModal();
-  const [search, setSearch] = useSearch(categories, [
+  const [search, setSearch, filteredData] = useSearch(categories, [
     "name",
     "description",
     "status",
@@ -42,10 +42,14 @@ const Category = () => {
     handleChange,
     resetForm,
   } = useForm(initialCategoryForm);
-  const debouncedSearch = useDebounce(search, 500);
-  const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-  );
+
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    nextPage,
+    prevPage,
+  } = usePagination(filteredData, 5);
 
    const openAddModal = () => {
     resetForm();
@@ -128,7 +132,7 @@ const Category = () => {
 
           <Table
             columns={columnCategory}
-            data={filteredCategories}
+            data={paginatedData}
             emptyMessage="Belum ada data kategori"
             actions={(item) => (
               <>
@@ -150,9 +154,32 @@ const Category = () => {
               </>
             )}
           />
+           <div className="mt-4 flex items-center justify-end gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={prevPage}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </Button>
+
+            <span className="text-sm text-slate-600">
+              Page {currentPage} dari {totalPages || 1}
+            </span>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={nextPage}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              Next
+            </Button>
+          </div>
         </main>
       </div>
-
+        
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
