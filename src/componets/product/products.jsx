@@ -8,33 +8,24 @@ import Table from "../Table";
 import productsData from "../../data/productsData";
 import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
+import useForm from "../../hooks/useForm";
+
+const intialProducts = {
+  name: "",
+  category: "",
+  supplier: "",
+  purchase_price: "",
+  selling_price: "",
+  stock: "",
+};
 const Products = () => {
   const [products, setProducts] = useState(productsData);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [form, setForm] = useState({
-    name: "",
-    category: "",
-    supplier: "",
-    purchase_price: "",
-    selling_price: "",
-    stock: "",
-  });
 
-  const resetForm = () => {
-    setForm({
-      name: "",
-      category: "",
-      supplier: "",
-      purchase_price: "",
-      selling_price: "",
-      stock: "",
-    });
-    setErrors();
-    setEditId(null);
-  };
+  const [form, setForm, errors, setErrors, handleChange, resetForm] =
+    useForm(intialProducts);
 
   const openAddModal = () => {
     resetForm();
@@ -59,17 +50,6 @@ const Products = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     resetForm();
-  };
-
-  const handleChange = e => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-    });
   };
 
   const handleSubmit = e => {
