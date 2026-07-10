@@ -8,7 +8,7 @@ import summaryCards from "../../utils/summaryCars.js";
 import topProducts from "../../utils/topProducts.js";
 import productsData from "../../data/productsData.js";
 
-import useCard from "../../hooks/useCart.js";
+import useCard from "../../hooks/useCard.js";
 
 const Dashboard = () => {
   const handleLogout = () => {
