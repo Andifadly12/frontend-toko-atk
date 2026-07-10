@@ -10,6 +10,8 @@ import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
+import productSchema from "../../utils/productSchema";
+import handleSubmitData from "../../utils/handlesubmit";
 
 const initialProductForm = {
   name: "",
@@ -54,46 +56,17 @@ const Products = () => {
     resetForm();
     setEditId(null);
   };
-
   const handleSubmit = e => {
-    e.preventDefault();
-
-    if (!form.name || !form.category || !form.supplier) {
-      alert("Nama produk, kategori, dan supplier wajib diisi");
-      return;
-    }
-
-    if (editId) {
-      const updatedProducts = products.map(product =>
-        product.id === editId
-          ? {
-              ...product,
-              name: form.name,
-              category: form.category,
-              supplier: form.supplier,
-              purchase_price: Number(form.purchase_price),
-              selling_price: Number(form.selling_price),
-              stock: Number(form.stock),
-            }
-          : product,
-      );
-
-      setProducts(updatedProducts);
-    } else {
-      const newProduct = {
-        id: Date.now(),
-        name: form.name,
-        category: form.category,
-        supplier: form.supplier,
-        purchase_price: Number(form.purchase_price),
-        selling_price: Number(form.selling_price),
-        stock: Number(form.stock),
-      };
-
-      setProducts([newProduct, ...products]);
-    }
-
-    closeModal();
+    handleSubmitData({
+      e,
+      schema: productSchema,
+      form,
+      editId,
+      data: products,
+      setData: setProducts,
+      setErrors,
+      closeModal: handleCloseModal,
+    });
   };
 
   const handleDelete = id => {
