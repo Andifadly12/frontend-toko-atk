@@ -10,7 +10,7 @@ import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
 import useForm from "../../hooks/useForm";
 
-const intialProducts = {
+const initialProductForm = {
   name: "",
   category: "",
   supplier: "",
@@ -24,8 +24,8 @@ const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  const [form, setForm, errors, setErrors, handleChange, resetForm] =
-    useForm(intialProducts);
+  const { form, setForm, errors, setErrors, handleChange, resetForm } =
+    useForm(initialProductForm);
 
   const openAddModal = () => {
     resetForm();
