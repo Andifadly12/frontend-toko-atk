@@ -3,14 +3,26 @@ import Sidebar from "../sidebar/Sidebar";
 import Card from "../Card";
 import Badge from "../badge";
 import Text from "../Text";
+
 import summaryCards from "../../utils/summaryCars.js";
 import topProducts from "../../utils/topProducts.js";
-import lowStockProducts from "../../utils/lowStockProducts.js";
+import productsData from "../../data/productsData.js";
+
+import useCard from "../../hooks/useCart.js";
 
 const Dashboard = () => {
   const handleLogout = () => {
     alert("Logout nanti disambungkan setelah fitur login dibuat");
   };
+
+  const safeSummaryCards = Array.isArray(summaryCards) ? summaryCards : [];
+  const safeTopProducts = Array.isArray(topProducts) ? topProducts : [];
+  const safeProductsData = Array.isArray(productsData) ? productsData : [];
+
+  const { lowStockProducts = [] } = useCard({
+    products: safeProductsData,
+    limitStock: 10,
+  });
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -36,7 +48,7 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {summaryCards.map(card => (
+            {safeSummaryCards.map(card => (
               <Card
                 key={card.title}
                 title={card.title}
@@ -64,26 +76,32 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-4">
-                {topProducts.map((product, index) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
-                  >
-                    <div>
-                      <Text weight="semibold">
-                        {index + 1}. {product.name}
-                      </Text>
+                {safeTopProducts.length > 0 ? (
+                  safeTopProducts.map((product, index) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
+                    >
+                      <div>
+                        <Text weight="semibold">
+                          {index + 1}. {product.name}
+                        </Text>
 
-                      <Text size="sm" color="muted">
-                        Terjual: {product.sold}
+                        <Text size="sm" color="muted">
+                          Terjual: {product.sold}
+                        </Text>
+                      </div>
+
+                      <Text weight="bold" color="primary">
+                        {product.total}
                       </Text>
                     </div>
-
-                    <Text weight="bold" color="primary">
-                      {product.total}
-                    </Text>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <Text size="sm" color="muted">
+                    Belum ada data produk terlaris.
+                  </Text>
+                )}
               </div>
             </Card>
 
@@ -103,18 +121,28 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-4">
-                {lowStockProducts.map(product => (
-                  <div
-                    key={product.id}
-                    className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
-                  >
-                    <Text weight="semibold">{product.name}</Text>
+                {lowStockProducts.length > 0 ? (
+                  lowStockProducts.map(product => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
+                    >
+                      <Text weight="semibold">{product.name}</Text>
 
-                    <Badge variant={product.stock <= 0 ? "danger" : "warning"}>
-                      Stok: {product.stock}
-                    </Badge>
-                  </div>
-                ))}
+                      <Badge
+                        variant={
+                          Number(product.stock) <= 0 ? "danger" : "warning"
+                        }
+                      >
+                        Stok: {product.stock}
+                      </Badge>
+                    </div>
+                  ))
+                ) : (
+                  <Text size="sm" color="muted">
+                    Tidak ada produk stok rendah.
+                  </Text>
+                )}
               </div>
             </Card>
           </div>
