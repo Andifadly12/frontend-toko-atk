@@ -102,8 +102,6 @@ const Category = () => {
 
       <div className="flex flex-1 flex-col">
         <Navbar
-          title="Categories"
-          subtitle="Kelola data kategori produk"
           userName="Admin Toko"
           onLogout={() => alert("Logout nanti disambungkan")}
         />

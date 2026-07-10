@@ -88,14 +88,21 @@ const Products = () => {
 
       <div className="flex flex-1 flex-col">
         <Navbar
-          title="Products"
-          subtitle="Kelola data produk Toko ATK"
           userName="Admin Toko"
           onLogout={() => alert("Logout nanti disambungkan")}
         />
 
         <main className="p-6">
           <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">
+                Data Product
+              </h1>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Tambah, edit, dan hapus data product.
+              </p>
+            </div>
             <Button variant="success" onClick={openAddModal}>
               Tambah Produk
             </Button>
