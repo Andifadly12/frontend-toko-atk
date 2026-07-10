@@ -108,6 +108,15 @@ const Category = () => {
 
         <main className="p-6">
           <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">
+                Data Category
+              </h1>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Tambah, edit, dan hapus data category.
+              </p>
+            </div>
             <Button variant="success" onClick={openAddModal}>
               Tambah Kategori
             </Button>
