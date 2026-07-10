@@ -9,6 +9,7 @@ import productsData from "../../data/productsData";
 import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
 import useForm from "../../hooks/useForm";
+import useModal from "../../hooks/useModal";
 
 const initialProductForm = {
   name: "",
@@ -21,7 +22,7 @@ const initialProductForm = {
 const Products = () => {
   const [products, setProducts] = useState(productsData);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, openModal, closeModal] = useModal;
   const [editId, setEditId] = useState(null);
 
   const { form, setForm, errors, setErrors, handleChange, resetForm } =
@@ -29,7 +30,8 @@ const Products = () => {
 
   const openAddModal = () => {
     resetForm();
-    setIsModalOpen(true);
+    setEditId();
+    openModal();
   };
 
   const openEditModal = product => {
@@ -44,12 +46,13 @@ const Products = () => {
       stock: product.stock,
     });
     setErrors();
-    setIsModalOpen(true);
+    openModal();
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const handleCloseModal = () => {
+    closeModal();
     resetForm();
+    setEditId(null);
   };
 
   const handleSubmit = e => {
@@ -150,12 +153,12 @@ const Products = () => {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={handleCloseModal}
         title={editId ? "Edit Produk" : "Tambah Produk"}
         size="lg"
         footer={
           <>
-            <Button variant="outline" onClick={closeModal}>
+            <Button variant="outline" onClick={handleCloseModal}>
               Batal
             </Button>
 
