@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 import Dashboard from "../componets/dasboard";
 import Products from "../componets/product";
 import Category from "../componets/category";
+import Customers from "../componets/customers";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/categorys",
     Component: Category,
+  },
+  {
+    path: "/customers",
+    Component: Customers,
   },
 ]);
 
