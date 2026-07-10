@@ -98,12 +98,7 @@ const Customers = () => {
       <Sidebar />
 
       <div className="flex min-h-screen flex-1 flex-col">
-        <Navbar
-          title="Customers"
-          subtitle="Kelola data pelanggan Toko ATK"
-          userName="Admin Toko"
-          onLogout={() => alert("Logout nanti disambungkan")}
-        />
+        <Navbar onLogout={() => alert("Logout nanti disambungkan")} />
 
         <main className="flex-1 p-6">
           <div className="mb-6 flex items-center justify-between">
