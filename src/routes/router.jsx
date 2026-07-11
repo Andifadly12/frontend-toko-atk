@@ -6,6 +6,7 @@ import Category from "../componets/category";
 import Customers from "../componets/customers";
 import Suppliers from "../componets/suppliers";
 import Sales from "../componets/sales";
+import Purchases from "../componets/purchases";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: "/sales",
     Component: Sales,
+  },
+  {
+    path: "/purchases",
+    Component: Purchases,
   },
 ]);
 
