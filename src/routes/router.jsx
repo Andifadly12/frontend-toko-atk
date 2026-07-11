@@ -7,6 +7,7 @@ import Customers from "../componets/customers";
 import Suppliers from "../componets/suppliers";
 import Sales from "../componets/sales";
 import Purchases from "../componets/purchases";
+import Reports from "../componets/reports";
 
 const router = createBrowserRouter([
   {
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
   {
     path: "/purchases",
     Component: Purchases,
+  },
+  {
+    path: "/reports",
+    Component: Reports,
   },
 ]);
 
