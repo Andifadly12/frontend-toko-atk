@@ -12,7 +12,7 @@ import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import productSchema from "../../utils/productSchema";
 import handleSubmitData from "../../utils/handlesubmit";
-
+import Footer from "../footer";
 import usePagination from "../../hooks/usePagination";
 
 const initialProductForm = {
@@ -133,31 +133,12 @@ const Products = () => {
             )}
           />
         </main>
-        <footer className="mt-auto py-4">
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevPage}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </Button>
-
-            <span className="text-sm text-slate-600">
-              Page {currentPage} dari {totalPages || 1}
-            </span>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextPage}
-              disabled={currentPage === totalPages || totalPages === 0}
-            >
-              Next
-            </Button>
-          </div>
-        </footer>
+        <Footer
+          currentPage={currentPage}
+          totalPages={totalPages}
+          prevPage={prevPage}
+          nextPage={nextPage}
+        />
       </div>
 
       <Modal

@@ -2,7 +2,7 @@ import Button from "../Button";
 
 const Footer = ({ currentPage, totalPages, prevPage, nextPage }) => {
   return (
-    <footer className="mt-auto border-t border-slate-200 bg-white py-4">
+    <footer className="mt-auto  py-4">
       <div className="flex items-center justify-center gap-3">
         <Button
           variant="outline"
