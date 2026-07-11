@@ -18,6 +18,7 @@ import usePagination from "../../hooks/usePagination";
 
 import supplierSchema from "../../utils/supplierSchema";
 import handleSubmitData from "../../utils/handlesubmit";
+import Footer from "../footer";
 
 const initialSupplierForm = {
   name: "",
@@ -146,31 +147,12 @@ const Suppliers = () => {
           />
         </main>
 
-        <footer className="mt-auto border-t border-slate-200 bg-white py-4">
-          <div className="flex items-center justify-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevPage}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </Button>
-
-            <span className="text-sm text-slate-600">
-              Page {currentPage} dari {totalPages || 1}
-            </span>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextPage}
-              disabled={currentPage === totalPages || totalPages === 0}
-            >
-              Next
-            </Button>
-          </div>
-        </footer>
+        <Footer
+          currentPage={currentPage}
+          totalPages={totalPages}
+          prevPage={prevPage}
+          nextPage={nextPage}
+        />
       </div>
 
       <Modal
