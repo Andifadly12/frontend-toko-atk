@@ -1,10 +1,6 @@
-import axios from "axios";
+import api from "../config/api";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_HOST_NAME || "http://localhost:4000",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-export default api;
+export const getProduct = async productData => {
+  const response = await api.get("/products", productData);
+  return response.data;
+};
