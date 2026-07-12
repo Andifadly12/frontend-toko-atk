@@ -5,7 +5,7 @@ import Button from "../Button";
 import productFormData from "../../data/productFromData";
 import Modal from "../Modal";
 import Table from "../Table";
-import productsData from "../../data/productsData";
+
 import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
 import useForm from "../../hooks/useForm";
@@ -14,6 +14,9 @@ import productSchema from "../../utils/productSchema";
 import handleSubmitData from "../../utils/handlesubmit";
 import Footer from "../footer";
 import usePagination from "../../hooks/usePagination";
+import { getProduct } from "../../stores/productServices";
+
+import { useEffect } from "react";
 
 const initialProductForm = {
   name: "",
@@ -24,14 +27,35 @@ const initialProductForm = {
   stock: "",
 };
 const Products = () => {
-  const [products, setProducts] = useState(productsData);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getProduct();
+
+      setProducts(data);
+    } catch (error) {
+      console.log("ERROR GET PRODUCTS:", error);
+      alert(error.response?.data?.message || "Gagal mengambil data produk");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  console.log(fetchProducts());
   const { isModalOpen, openModal, closeModal } = useModal();
   const [editId, setEditId] = useState(null);
 
   const { form, setForm, errors, setErrors, handleChange, resetForm } =
     useForm(initialProductForm);
-
+  console.log(products);
   const openAddModal = () => {
     resetForm();
     setEditId();
@@ -108,30 +132,36 @@ const Products = () => {
             </Button>
           </div>
 
-          <Table
-            columns={columnsProducts}
-            data={paginatedData}
-            emptyMessage="Belum ada data produk"
-            actions={item => (
-              <>
-                <Button
-                  size="sm"
-                  variant="warning"
-                  onClick={() => openEditModal(item)}
-                >
-                  Edit
-                </Button>
+          {loading ? (
+            <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
+              Loading data produk...
+            </div>
+          ) : (
+            <Table
+              columns={columnsProducts}
+              data={paginatedData}
+              emptyMessage="Belum ada data produk"
+              actions={item => (
+                <>
+                  <Button
+                    size="sm"
+                    variant="warning"
+                    onClick={() => openEditModal(item)}
+                  >
+                    Edit
+                  </Button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => handleDelete(item.id)}
-                >
-                  Hapus
-                </Button>
-              </>
-            )}
-          />
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    Hapus
+                  </Button>
+                </>
+              )}
+            />
+          )}
         </main>
         <Footer
           currentPage={currentPage}
