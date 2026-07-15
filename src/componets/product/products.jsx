@@ -8,16 +8,20 @@ import Modal from "../Modal";
 import Table from "../Table";
 import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
+import Footer from "../footer";
 
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import usePagination from "../../hooks/usePagination";
 
 import productSchema from "../../utils/productSchema";
-import handleSubmitData from "../../utils/handlesubmit";
-import Footer from "../footer";
 
-import { getProducts } from "../../stores/productServices.js";
+import {
+  getProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "../../stores/productServices.js";
 
 const initialProductForm = {
   name: "",
@@ -41,6 +45,30 @@ const Products = () => {
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
     usePagination(products, 5);
 
+  const normalizeProducts = data => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.rows)) return data.rows;
+    return [];
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const data = await getProducts();
+
+      console.log("DATA DARI API:", data);
+
+      const productList = normalizeProducts(data);
+
+      setProducts(productList);
+    } catch (error) {
+      console.log("ERROR GET PRODUCTS:", error);
+      alert(error.message || "Gagal mengambil data produk");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let isActive = true;
 
@@ -50,9 +78,7 @@ const Products = () => {
 
         console.log("DATA DARI API:", data);
 
-        const productList = Array.isArray(data)
-          ? data
-          : data?.data || data?.rows || [];
+        const productList = normalizeProducts(data);
 
         if (isActive) {
           setProducts(productList);
@@ -61,7 +87,7 @@ const Products = () => {
         console.log("ERROR GET PRODUCTS:", error);
 
         if (isActive) {
-          alert(error.response?.data?.message || "Gagal mengambil data produk");
+          alert(error.message || "Gagal mengambil data produk");
         }
       } finally {
         if (isActive) {
@@ -80,6 +106,7 @@ const Products = () => {
   const openAddModal = () => {
     resetForm();
     setEditId(null);
+    setErrors({});
     openModal();
   };
 
@@ -87,12 +114,12 @@ const Products = () => {
     setEditId(product.id);
 
     setForm({
-      name: product.name,
-      category: product.category,
-      supplier: product.supplier,
-      purchase_price: product.purchase_price,
-      selling_price: product.selling_price,
-      stock: product.stock,
+      name: product.name || "",
+      category: product.category || "",
+      supplier: product.supplier || "",
+      purchase_price: product.purchase_price || "",
+      selling_price: product.selling_price || "",
+      stock: product.stock || "",
     });
 
     setErrors({});
@@ -103,27 +130,69 @@ const Products = () => {
     closeModal();
     resetForm();
     setEditId(null);
+    setErrors({});
   };
 
-  const handleSubmit = e => {
-    handleSubmitData({
-      e,
-      schema: productSchema,
-      form,
-      editId,
-      data: products,
-      setData: setProducts,
-      setErrors,
-      closeModal: handleCloseModal,
-    });
+  const handleSubmit = async e => {
+    e.preventDefault();
+
+    const result = productSchema.safeParse(form);
+
+    if (!result.success) {
+      const fieldErrors = {};
+
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    const productPayload = {
+      name: form.name,
+      category: form.category,
+      supplier: form.supplier,
+      purchase_price: Number(form.purchase_price),
+      selling_price: Number(form.selling_price),
+      stock: Number(form.stock),
+    };
+
+    try {
+      setLoading(true);
+
+      if (editId) {
+        await updateProduct(editId, productPayload);
+      } else {
+        await createProduct(productPayload);
+      }
+
+      await fetchProducts();
+      handleCloseModal();
+    } catch (error) {
+      console.log("ERROR SAVE PRODUCT:", error);
+      alert(error.message || "Gagal menyimpan produk");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = id => {
+  const handleDelete = async id => {
     const confirmDelete = window.confirm("Yakin ingin menghapus produk ini?");
 
-    if (confirmDelete) {
-      const filteredProducts = products.filter(product => product.id !== id);
-      setProducts(filteredProducts);
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+
+      await deleteProduct(id);
+
+      await fetchProducts();
+    } catch (error) {
+      console.log("ERROR DELETE PRODUCT:", error);
+      alert(error.message || "Gagal menghapus produk");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -206,7 +275,7 @@ const Products = () => {
             </Button>
 
             <Button variant="primary" onClick={handleSubmit}>
-              {editId ? "Update" : "Simpan"}
+              {loading ? "Menyimpan..." : editId ? "Update" : "Simpan"}
             </Button>
           </>
         }
