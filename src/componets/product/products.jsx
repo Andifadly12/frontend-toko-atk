@@ -43,7 +43,7 @@ const Products = () => {
     useForm(initialProductForm);
 
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
-    usePagination(products, 5);
+    usePagination(products, 10);
 
   const normalizeProducts = data => {
     if (Array.isArray(data)) return data;
