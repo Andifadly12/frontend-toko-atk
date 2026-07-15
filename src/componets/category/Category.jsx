@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-import Navbar from "../navbar";
-import Sidebar from "../sidebar";
-import Button from "../button";
+import Navbar from "../Navbar";
+import Sidebar from "../Sidebar";
+import Button from "../Button";
 import Input from "../input";
-import Modal from "../modal";
-import Table from "../table";
+import Modal from "../Modal";
+import Table from "../Table";
 import Form from "../form";
 import Footer from "../footer";
 

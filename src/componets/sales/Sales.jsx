@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import Navbar from "../navbar/Navbar";
-import Sidebar from "../sidebar/Sidebar";
+import Navbar from "../Navbar";
+import Sidebar from "../Sidebar";
 import Button from "../Button";
 import Badge from "../badge";
 import Text from "../Text";
