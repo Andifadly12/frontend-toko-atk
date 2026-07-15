@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import Navbar from "../navbar/Navbar";
 import Sidebar from "../sidebar/Sidebar";
 import Button from "../Button";
@@ -5,13 +7,18 @@ import Badge from "../badge";
 import Text from "../Text";
 import Footer from "../footer";
 
-import productsData from "../../data/productsData";
 import formatRupiah from "../../utils/formatRupiah";
 
 import useCart from "../../hooks/useCart";
 import usePagination from "../../hooks/usePagination";
 
+import { getProducts } from "../../stores/productServices";
+import { createSale } from "../../stores/salesServices";
+
 const Sales = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const {
     cartItems,
     addToCart,
@@ -24,26 +31,125 @@ const Sales = () => {
   } = useCart();
 
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
-    usePagination(productsData, 5);
+    usePagination(products, 5);
 
-  const handleCheckout = () => {
+  const normalizeProducts = data => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.rows)) return data.rows;
+    return [];
+  };
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+
+        console.log("DATA PRODUK DARI API:", data);
+
+        const productList = normalizeProducts(data);
+
+        if (isActive) {
+          setProducts(productList);
+        }
+      } catch (error) {
+        console.log("ERROR GET PRODUCTS:", error);
+
+        if (isActive) {
+          alert(error.message || "Gagal mengambil data produk");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getProducts();
+
+      const productList = normalizeProducts(data);
+
+      setProducts(productList);
+    } catch (error) {
+      console.log("ERROR GET PRODUCTS:", error);
+      alert(error.message || "Gagal mengambil data produk");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = product => {
+    const existingItem = cartItems.find(item => item.id === product.id);
+
+    if (existingItem && existingItem.qty >= product.stock) {
+      alert("Jumlah barang sudah mencapai stok tersedia");
+      return;
+    }
+
+    addToCart(product);
+  };
+
+  const handleIncreaseQty = id => {
+    const product = products.find(item => item.id === id);
+    const cartItem = cartItems.find(item => item.id === id);
+
+    if (!product || !cartItem) return;
+
+    if (cartItem.qty >= product.stock) {
+      alert("Jumlah barang sudah mencapai stok tersedia");
+      return;
+    }
+
+    increaseQty(id);
+  };
+
+  const handleCheckout = async () => {
     if (cartItems.length === 0) {
       alert("Keranjang masih kosong");
       return;
     }
 
-    const saleData = {
-      id: Date.now(),
-      items: cartItems,
-      total_items: totalItems,
-      total_price: totalPrice,
-      date: new Date().toLocaleString("id-ID"),
+    const salePayload = {
+      customer_id: null,
+      paid_amount: totalPrice,
+      payment_method: "cash",
+      items: cartItems.map(item => ({
+        product_id: item.id,
+        quantity: item.qty,
+      })),
     };
 
-    console.log("Data Penjualan:", saleData);
+    try {
+      setLoading(true);
 
-    alert("Transaksi berhasil disimpan");
-    clearCart();
+      console.log("DATA CHECKOUT:", salePayload);
+
+      await createSale(salePayload);
+
+      alert("Transaksi berhasil disimpan");
+
+      clearCart();
+
+      await fetchProducts();
+    } catch (error) {
+      console.log("ERROR CHECKOUT:", error);
+      alert(error.message || "Gagal menyimpan transaksi");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,7 +174,6 @@ const Sales = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            {/* DAFTAR PRODUK */}
             <div className="xl:col-span-2">
               <div className="rounded-2xl bg-white p-5 shadow-sm">
                 <div className="mb-5 flex items-center justify-between">
@@ -79,86 +184,106 @@ const Sales = () => {
                   <Badge variant="primary">Produk</Badge>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
-                    <thead>
-                      <tr className="border-b border-slate-200">
-                        <th className="px-4 py-3 text-sm font-semibold text-slate-600">
-                          Produk
-                        </th>
-                        <th className="px-4 py-3 text-sm font-semibold text-slate-600">
-                          Kategori
-                        </th>
-                        <th className="px-4 py-3 text-sm font-semibold text-slate-600">
-                          Harga
-                        </th>
-                        <th className="px-4 py-3 text-sm font-semibold text-slate-600">
-                          Stok
-                        </th>
-                        <th className="px-4 py-3 text-sm font-semibold text-slate-600">
-                          Aksi
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {paginatedData.map(product => (
-                        <tr
-                          key={product.id}
-                          className="border-b border-slate-100 hover:bg-slate-50"
-                        >
-                          <td className="px-4 py-3">
-                            <Text weight="semibold">{product.name}</Text>
-                            <Text size="sm" color="muted">
-                              Supplier: {product.supplier}
-                            </Text>
-                          </td>
-
-                          <td className="px-4 py-3">
-                            <Text size="sm" color="muted">
-                              {product.category}
-                            </Text>
-                          </td>
-
-                          <td className="px-4 py-3">
-                            <Text size="sm" weight="semibold" color="primary">
-                              {formatRupiah(product.selling_price)}
-                            </Text>
-                          </td>
-
-                          <td className="px-4 py-3">
-                            <Badge
-                              variant={
-                                product.stock <= 0
-                                  ? "danger"
-                                  : product.stock <= 10
-                                    ? "warning"
-                                    : "success"
-                              }
-                            >
-                              {product.stock}
-                            </Badge>
-                          </td>
-
-                          <td className="px-4 py-3">
-                            <Button
-                              size="sm"
-                              variant="success"
-                              onClick={() => addToCart(product)}
-                              disabled={product.stock <= 0}
-                            >
-                              Tambah
-                            </Button>
-                          </td>
+                {loading ? (
+                  <div className="rounded-xl border border-slate-200 p-5 text-center text-sm text-slate-500">
+                    Loading data produk...
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left">
+                      <thead>
+                        <tr className="border-b border-slate-200">
+                          <th className="px-4 py-3 text-sm font-semibold text-slate-600">
+                            Produk
+                          </th>
+                          <th className="px-4 py-3 text-sm font-semibold text-slate-600">
+                            Kategori
+                          </th>
+                          <th className="px-4 py-3 text-sm font-semibold text-slate-600">
+                            Harga
+                          </th>
+                          <th className="px-4 py-3 text-sm font-semibold text-slate-600">
+                            Stok
+                          </th>
+                          <th className="px-4 py-3 text-sm font-semibold text-slate-600">
+                            Aksi
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+
+                      <tbody>
+                        {paginatedData.length > 0 ? (
+                          paginatedData.map(product => (
+                            <tr
+                              key={product.id}
+                              className="border-b border-slate-100 hover:bg-slate-50"
+                            >
+                              <td className="px-4 py-3">
+                                <Text weight="semibold">{product.name}</Text>
+                                <Text size="sm" color="muted">
+                                  Supplier: {product.supplier || "-"}
+                                </Text>
+                              </td>
+
+                              <td className="px-4 py-3">
+                                <Text size="sm" color="muted">
+                                  {product.category || "-"}
+                                </Text>
+                              </td>
+
+                              <td className="px-4 py-3">
+                                <Text
+                                  size="sm"
+                                  weight="semibold"
+                                  color="primary"
+                                >
+                                  {formatRupiah(product.selling_price)}
+                                </Text>
+                              </td>
+
+                              <td className="px-4 py-3">
+                                <Badge
+                                  variant={
+                                    product.stock <= 0
+                                      ? "danger"
+                                      : product.stock <= 10
+                                        ? "warning"
+                                        : "success"
+                                  }
+                                >
+                                  {product.stock}
+                                </Badge>
+                              </td>
+
+                              <td className="px-4 py-3">
+                                <Button
+                                  size="sm"
+                                  variant="success"
+                                  onClick={() => handleAddToCart(product)}
+                                  disabled={product.stock <= 0}
+                                >
+                                  Tambah
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="5"
+                              className="px-4 py-6 text-center text-sm text-slate-500"
+                            >
+                              Belum ada data produk
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* KERANJANG */}
             <div>
               <div className="rounded-2xl bg-white p-5 shadow-sm">
                 <div className="mb-5 flex items-center justify-between">
@@ -210,7 +335,7 @@ const Sales = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => increaseQty(item.id)}
+                              onClick={() => handleIncreaseQty(item.id)}
                             >
                               +
                             </Button>
@@ -252,9 +377,9 @@ const Sales = () => {
                       variant="primary"
                       full
                       onClick={handleCheckout}
-                      disabled={cartItems.length === 0}
+                      disabled={cartItems.length === 0 || loading}
                     >
-                      Checkout
+                      {loading ? "Memproses..." : "Checkout"}
                     </Button>
                   </div>
                 </div>
