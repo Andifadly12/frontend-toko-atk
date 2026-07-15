@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import Button from "../Button";
-import productFormData from "../../data/productFromData";
 import Modal from "../Modal";
 import Table from "../Table";
 import Form from "../form";
@@ -14,8 +13,6 @@ import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import usePagination from "../../hooks/usePagination";
 
-import productSchema from "../../utils/productSchema";
-
 import {
   getProducts,
   createProduct,
@@ -23,10 +20,13 @@ import {
   deleteProduct,
 } from "../../stores/productServices.js";
 
+import { getCategories } from "../../stores/categoryServices.js";
+
 const initialProductForm = {
   name: "",
-  category: "",
-  supplier: "",
+  category_id: "",
+  sku: "",
+  unit: "pcs",
   purchase_price: "",
   selling_price: "",
   stock: "",
@@ -34,6 +34,7 @@ const initialProductForm = {
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
 
@@ -45,46 +46,111 @@ const Products = () => {
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
     usePagination(products, 10);
 
-  const normalizeProducts = data => {
+  const normalizeData = data => {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.data)) return data.data;
     if (Array.isArray(data?.rows)) return data.rows;
     return [];
   };
 
-  const fetchProducts = async () => {
-    try {
-      const data = await getProducts();
+  const enrichProducts = (productList, categoryList) => {
+    return productList.map(product => {
+      const category = categoryList.find(
+        item => Number(item.id) === Number(product.category_id),
+      );
 
-      console.log("DATA DARI API:", data);
-
-      const productList = normalizeProducts(data);
-
-      setProducts(productList);
-    } catch (error) {
-      console.log("ERROR GET PRODUCTS:", error);
-      alert(error.message || "Gagal mengambil data produk");
-    } finally {
-      setLoading(false);
-    }
+      return {
+        ...product,
+        category_name:
+          product.category_name || product.category || category?.name || "-",
+      };
+    });
   };
+
+  const productFormFields = [
+    {
+      name: "name",
+      label: "Nama Produk",
+      type: "text",
+      placeholder: "Contoh: Pulpen Pilot",
+      required: true,
+    },
+    {
+      name: "category_id",
+      label: "Kategori",
+      type: "select",
+      placeholder: "Pilih kategori",
+      required: true,
+      options: categories.map(category => ({
+        label: category.name,
+        value: category.id,
+      })),
+    },
+    {
+      name: "sku",
+      label: "SKU",
+      type: "text",
+      placeholder: "Contoh: PLP-001",
+      required: true,
+    },
+    {
+      name: "unit",
+      label: "Satuan",
+      type: "select",
+      placeholder: "Pilih satuan",
+      required: true,
+      options: [
+        { label: "pcs", value: "pcs" },
+        { label: "box", value: "box" },
+        { label: "pack", value: "pack" },
+        { label: "lusin", value: "lusin" },
+        { label: "rim", value: "rim" },
+      ],
+    },
+    {
+      name: "purchase_price",
+      label: "Harga Beli",
+      type: "number",
+      placeholder: "Contoh: 2500",
+      required: true,
+    },
+    {
+      name: "selling_price",
+      label: "Harga Jual",
+      type: "number",
+      placeholder: "Contoh: 3000",
+      required: true,
+    },
+    {
+      name: "stock",
+      label: "Stok",
+      type: "number",
+      placeholder: "Contoh: 100",
+      required: true,
+    },
+  ];
 
   useEffect(() => {
     let isActive = true;
 
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
-        const data = await getProducts();
+        const [productResponse, categoryResponse] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
 
-        console.log("DATA DARI API:", data);
+        const productList = normalizeData(productResponse);
+        const categoryList = normalizeData(categoryResponse);
 
-        const productList = normalizeProducts(data);
+        const productWithCategory = enrichProducts(productList, categoryList);
 
         if (isActive) {
-          setProducts(productList);
+          setProducts(productWithCategory);
+          setCategories(categoryList);
         }
       } catch (error) {
-        console.log("ERROR GET PRODUCTS:", error);
+        console.log("ERROR LOAD PRODUCTS:", error);
 
         if (isActive) {
           alert(error.message || "Gagal mengambil data produk");
@@ -96,12 +162,36 @@ const Products = () => {
       }
     };
 
-    loadProducts();
+    loadData();
 
     return () => {
       isActive = false;
     };
   }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+
+      const [productResponse, categoryResponse] = await Promise.all([
+        getProducts(),
+        getCategories(),
+      ]);
+
+      const productList = normalizeData(productResponse);
+      const categoryList = normalizeData(categoryResponse);
+
+      const productWithCategory = enrichProducts(productList, categoryList);
+
+      setProducts(productWithCategory);
+      setCategories(categoryList);
+    } catch (error) {
+      console.log("ERROR GET PRODUCTS:", error);
+      alert(error.message || "Gagal mengambil data produk");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openAddModal = () => {
     resetForm();
@@ -115,8 +205,9 @@ const Products = () => {
 
     setForm({
       name: product.name || "",
-      category: product.category || "",
-      supplier: product.supplier || "",
+      category_id: product.category_id || "",
+      sku: product.sku || "",
+      unit: product.unit || "pcs",
       purchase_price: product.purchase_price || "",
       selling_price: product.selling_price || "",
       stock: product.stock || "",
@@ -133,26 +224,59 @@ const Products = () => {
     setErrors({});
   };
 
+  const validateForm = () => {
+    const fieldErrors = {};
+
+    if (!form.name) {
+      fieldErrors.name = "Nama produk wajib diisi";
+    }
+
+    if (!form.category_id) {
+      fieldErrors.category_id = "Kategori wajib dipilih";
+    }
+
+    if (!form.sku) {
+      fieldErrors.sku = "SKU wajib diisi";
+    }
+
+    if (!form.unit) {
+      fieldErrors.unit = "Satuan wajib dipilih";
+    }
+
+    if (!form.purchase_price || Number(form.purchase_price) <= 0) {
+      fieldErrors.purchase_price = "Harga beli wajib lebih dari 0";
+    }
+
+    if (!form.selling_price || Number(form.selling_price) <= 0) {
+      fieldErrors.selling_price = "Harga jual wajib lebih dari 0";
+    }
+
+    if (Number(form.selling_price) < Number(form.purchase_price)) {
+      fieldErrors.selling_price =
+        "Harga jual tidak boleh lebih kecil dari harga beli";
+    }
+
+    if (form.stock === "" || Number(form.stock) < 0) {
+      fieldErrors.stock = "Stok tidak boleh kosong atau minus";
+    }
+
+    setErrors(fieldErrors);
+
+    return Object.keys(fieldErrors).length === 0;
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const result = productSchema.safeParse(form);
+    const isValid = validateForm();
 
-    if (!result.success) {
-      const fieldErrors = {};
-
-      result.error.issues.forEach(issue => {
-        fieldErrors[issue.path[0]] = issue.message;
-      });
-
-      setErrors(fieldErrors);
-      return;
-    }
+    if (!isValid) return;
 
     const productPayload = {
       name: form.name,
-      category: form.category,
-      supplier: form.supplier,
+      category_id: Number(form.category_id),
+      sku: form.sku,
+      unit: form.unit,
       purchase_price: Number(form.purchase_price),
       selling_price: Number(form.selling_price),
       stock: Number(form.stock),
@@ -281,7 +405,7 @@ const Products = () => {
         }
       >
         <Form
-          fields={productFormData}
+          fields={productFormFields}
           form={form}
           errors={errors}
           onChange={handleChange}

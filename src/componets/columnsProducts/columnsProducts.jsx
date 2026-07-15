@@ -1,27 +1,35 @@
 import formatRupiah from "../../utils/formatRupiah";
 import Badge from "../badge";
 import Text from "../Text";
+
 const columnsProducts = [
   {
     key: "name",
     label: "Produk",
-    render: item => <Text weight="semibold">{item.name}</Text>,
+    render: item => (
+      <div>
+        <Text weight="semibold">{item.name}</Text>
+        <Text size="sm" color="muted">
+          SKU: {item.sku || "-"}
+        </Text>
+      </div>
+    ),
   },
   {
-    key: "category",
+    key: "category_name",
     label: "Kategori",
     render: item => (
       <Text size="sm" color="muted">
-        {item.category}
+        {item.category_name || item.category || "-"}
       </Text>
     ),
   },
   {
-    key: "supplier",
-    label: "Supplier",
+    key: "unit",
+    label: "Satuan",
     render: item => (
       <Text size="sm" color="muted">
-        {item.supplier}
+        {item.unit || "-"}
       </Text>
     ),
   },
