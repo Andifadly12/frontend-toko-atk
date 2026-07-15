@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import Navbar from "../navbar/Navbar";
-import Sidebar from "../sidebar/Sidebar";
+import Navbar from "../navbar";
+import Sidebar from "../sidebar";
 import Button from "../Button";
 import Modal from "../Modal";
 import Table from "../Table";
