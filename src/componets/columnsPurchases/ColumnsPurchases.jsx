@@ -1,8 +1,8 @@
-import Badge from "../badge";
 import Text from "../Text";
+import Badge from "../badge";
 import formatRupiah from "../../utils/formatRupiah";
 
-const ColumnsPurchases = [
+const columnsPurchases = [
   {
     key: "invoice_number",
     label: "Invoice",
@@ -13,47 +13,43 @@ const ColumnsPurchases = [
     label: "Produk",
     render: item => (
       <Text size="sm" color="muted">
-        {item.product_name}
+        {item.product_name || "-"}
       </Text>
     ),
   },
   {
-    key: "supplier",
+    key: "supplier_name",
     label: "Supplier",
     render: item => (
       <Text size="sm" color="muted">
-        {item.supplier}
+        {item.supplier_name || "-"}
       </Text>
     ),
   },
   {
     key: "quantity",
     label: "Qty",
-    render: item => <Badge variant="primary">{item.quantity}</Badge>,
+    render: item => <Badge variant="primary">{item.quantity || 0}</Badge>,
   },
   {
-    key: "purchase_price",
+    key: "price",
     label: "Harga Beli",
-    render: item => <Text size="sm">{formatRupiah(item.purchase_price)}</Text>,
+    render: item => <Text size="sm">{formatRupiah(item.price || 0)}</Text>,
   },
   {
-    key: "total_price",
+    key: "total_amount",
     label: "Total",
     render: item => (
       <Text size="sm" weight="semibold" color="primary">
-        {formatRupiah(item.total_price)}
+        {formatRupiah(item.total_amount || item.subtotal || 0)}
       </Text>
     ),
   },
   {
     key: "status",
     label: "Status",
-    render: item => (
-      <Badge variant={item.status === "paid" ? "success" : "warning"}>
-        {item.status}
-      </Badge>
-    ),
+    render: () => <Badge variant="success">Selesai</Badge>,
   },
 ];
 
-export default ColumnsPurchases;
+export default columnsPurchases;

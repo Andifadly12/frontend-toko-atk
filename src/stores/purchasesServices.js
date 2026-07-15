@@ -18,8 +18,6 @@ export const getPurchases = async () => {
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal mengambil data pembelian");
-  } finally {
-    console.log("GET purchases selesai");
   }
 };
 
@@ -29,8 +27,6 @@ export const getPurchaseById = async id => {
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal mengambil detail pembelian");
-  } finally {
-    console.log("GET purchase detail selesai");
   }
 };
 
@@ -40,8 +36,6 @@ export const createPurchase = async purchaseData => {
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal menambah pembelian");
-  } finally {
-    console.log("CREATE purchase selesai");
   }
 };
 
@@ -51,8 +45,6 @@ export const updatePurchase = async (id, purchaseData) => {
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal update pembelian");
-  } finally {
-    console.log("UPDATE purchase selesai");
   }
 };
 
@@ -62,7 +54,5 @@ export const deletePurchase = async id => {
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal hapus pembelian");
-  } finally {
-    console.log("DELETE purchase selesai");
   }
 };
