@@ -17,7 +17,7 @@ import productSchema from "../../utils/productSchema";
 import handleSubmitData from "../../utils/handlesubmit";
 import Footer from "../footer";
 
-import getProduct from "../../stores/productServices.js";
+import { getProducts } from "../../stores/productServices.js";
 
 const initialProductForm = {
   name: "",
@@ -46,7 +46,7 @@ const Products = () => {
 
     const loadProducts = async () => {
       try {
-        const data = await getProduct();
+        const data = await getProducts();
 
         console.log("DATA DARI API:", data);
 
