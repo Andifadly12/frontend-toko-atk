@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Navbar from "../navbar/Navbar";
 import Sidebar from "../sidebar/Sidebar";
@@ -6,10 +6,9 @@ import Button from "../Button";
 import Modal from "../Modal";
 import Table from "../Table";
 import Form from "../form";
+import Footer from "../footer";
 
-import suppliersData from "../../data/suppliersData";
 import supplierFormData from "../../data/supplierFormData";
-
 import columnsSuppliers from "../columnsSuppliers/columnsSuppliers";
 
 import useForm from "../../hooks/useForm";
@@ -17,8 +16,13 @@ import useModal from "../../hooks/useModal";
 import usePagination from "../../hooks/usePagination";
 
 import supplierSchema from "../../utils/supplierSchema";
-import handleSubmitData from "../../utils/handlesubmit";
-import Footer from "../footer";
+
+import {
+  getSuppliers,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
+} from "../../stores/supplierServices";
 
 const initialSupplierForm = {
   name: "",
@@ -30,7 +34,8 @@ const initialSupplierForm = {
 };
 
 const Suppliers = () => {
-  const [suppliers, setSuppliers] = useState(suppliersData);
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
 
   const { isModalOpen, openModal, closeModal } = useModal();
@@ -41,9 +46,68 @@ const Suppliers = () => {
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
     usePagination(suppliers, 5);
 
+  const normalizeSuppliers = data => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.rows)) return data.rows;
+    return [];
+  };
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadSuppliers = async () => {
+      try {
+        const data = await getSuppliers();
+
+        console.log("DATA SUPPLIER DARI API:", data);
+
+        const supplierList = normalizeSuppliers(data);
+
+        if (isActive) {
+          setSuppliers(supplierList);
+        }
+      } catch (error) {
+        console.log("ERROR GET SUPPLIERS:", error);
+
+        if (isActive) {
+          alert(error.message || "Gagal mengambil data supplier");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadSuppliers();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const fetchSuppliers = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getSuppliers();
+
+      const supplierList = normalizeSuppliers(data);
+
+      setSuppliers(supplierList);
+    } catch (error) {
+      console.log("ERROR GET SUPPLIERS:", error);
+      alert(error.message || "Gagal mengambil data supplier");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openAddModal = () => {
     resetForm();
     setEditId(null);
+    setErrors({});
     openModal();
   };
 
@@ -51,12 +115,12 @@ const Suppliers = () => {
     setEditId(supplier.id);
 
     setForm({
-      name: supplier.name,
-      contact_person: supplier.contact_person,
-      phone: supplier.phone,
-      email: supplier.email,
-      address: supplier.address,
-      status: supplier.status,
+      name: supplier.name || "",
+      contact_person: supplier.contact_person || "",
+      phone: supplier.phone || "",
+      email: supplier.email || "",
+      address: supplier.address || "",
+      status: supplier.status || "active",
     });
 
     setErrors({});
@@ -67,30 +131,69 @@ const Suppliers = () => {
     closeModal();
     resetForm();
     setEditId(null);
+    setErrors({});
   };
 
-  const handleSubmit = e => {
-    handleSubmitData({
-      e,
-      schema: supplierSchema,
-      form,
-      editId,
-      data: suppliers,
-      setData: setSuppliers,
-      setErrors,
-      closeModal: handleCloseModal,
-    });
+  const handleSubmit = async e => {
+    e.preventDefault();
+
+    const result = supplierSchema.safeParse(form);
+
+    if (!result.success) {
+      const fieldErrors = {};
+
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    const supplierPayload = {
+      name: form.name,
+      contact_person: form.contact_person,
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      status: form.status,
+    };
+
+    try {
+      setLoading(true);
+
+      if (editId) {
+        await updateSupplier(editId, supplierPayload);
+      } else {
+        await createSupplier(supplierPayload);
+      }
+
+      await fetchSuppliers();
+      handleCloseModal();
+    } catch (error) {
+      console.log("ERROR SAVE SUPPLIER:", error);
+      alert(error.message || "Gagal menyimpan supplier");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = id => {
+  const handleDelete = async id => {
     const confirmDelete = window.confirm("Yakin ingin menghapus supplier ini?");
 
-    if (confirmDelete) {
-      const filteredSuppliers = suppliers.filter(
-        supplier => supplier.id !== id,
-      );
+    if (!confirmDelete) return;
 
-      setSuppliers(filteredSuppliers);
+    try {
+      setLoading(true);
+
+      await deleteSupplier(id);
+
+      await fetchSuppliers();
+    } catch (error) {
+      console.log("ERROR DELETE SUPPLIER:", error);
+      alert(error.message || "Gagal menghapus supplier");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -121,30 +224,36 @@ const Suppliers = () => {
             </Button>
           </div>
 
-          <Table
-            columns={columnsSuppliers}
-            data={paginatedData}
-            emptyMessage="Belum ada data supplier"
-            actions={item => (
-              <>
-                <Button
-                  size="sm"
-                  variant="warning"
-                  onClick={() => openEditModal(item)}
-                >
-                  Edit
-                </Button>
+          {loading ? (
+            <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
+              Loading data supplier...
+            </div>
+          ) : (
+            <Table
+              columns={columnsSuppliers}
+              data={paginatedData}
+              emptyMessage="Belum ada data supplier"
+              actions={item => (
+                <>
+                  <Button
+                    size="sm"
+                    variant="warning"
+                    onClick={() => openEditModal(item)}
+                  >
+                    Edit
+                  </Button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => handleDelete(item.id)}
-                >
-                  Hapus
-                </Button>
-              </>
-            )}
-          />
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    Hapus
+                  </Button>
+                </>
+              )}
+            />
+          )}
         </main>
 
         <Footer
@@ -167,7 +276,7 @@ const Suppliers = () => {
             </Button>
 
             <Button variant="primary" onClick={handleSubmit}>
-              {editId ? "Update" : "Simpan"}
+              {loading ? "Menyimpan..." : editId ? "Update" : "Simpan"}
             </Button>
           </>
         }
