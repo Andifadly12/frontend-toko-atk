@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Navbar from "../navbar";
 import Sidebar from "../sidebar";
@@ -7,6 +7,7 @@ import Input from "../input";
 import Modal from "../modal";
 import Table from "../table";
 import Form from "../form";
+import Footer from "../footer";
 
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
@@ -15,11 +16,14 @@ import usePagination from "../../hooks/usePagination";
 
 import columnCategory from "../ColumnsCategory";
 import categorySchema from "../../utils/categorySchema";
-import handleSubmitData from "../../utils/handlesubmit";
-
 import categorysData from "../../data/categorysData";
-import initialCategories from "../../data/initialCategories";
-import Footer from "../footer";
+
+import {
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../../stores/categoryServices.js";
 
 const initialCategoryForm = {
   name: "",
@@ -29,7 +33,8 @@ const initialCategoryForm = {
 };
 
 const Category = () => {
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
 
   const { isModalOpen, openModal, closeModal } = useModal();
@@ -44,11 +49,70 @@ const Category = () => {
   ]);
 
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
-    usePagination(filteredData, 5);
+    usePagination(filteredData, 10);
+
+  const normalizeCategories = data => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.rows)) return data.rows;
+    return [];
+  };
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+
+        console.log("DATA CATEGORY DARI API:", data);
+
+        const categoryList = normalizeCategories(data);
+
+        if (isActive) {
+          setCategories(categoryList);
+        }
+      } catch (error) {
+        console.log("ERROR GET CATEGORIES:", error);
+
+        if (isActive) {
+          alert(error.message || "Gagal mengambil data kategori");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getCategories();
+
+      const categoryList = normalizeCategories(data);
+
+      setCategories(categoryList);
+    } catch (error) {
+      console.log("ERROR GET CATEGORIES:", error);
+      alert(error.message || "Gagal mengambil data kategori");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openAddModal = () => {
     resetForm();
     setEditId(null);
+    setErrors({});
     openModal();
   };
 
@@ -56,10 +120,10 @@ const Category = () => {
     setEditId(category.id);
 
     setForm({
-      name: category.name,
-      description: category.description,
-      total_products: category.total_products,
-      status: category.status,
+      name: category.name || "",
+      description: category.description || "",
+      total_products: category.total_products || "",
+      status: category.status || "active",
     });
 
     setErrors({});
@@ -70,30 +134,67 @@ const Category = () => {
     closeModal();
     resetForm();
     setEditId(null);
+    setErrors({});
   };
 
-  const handleSubmit = e => {
-    handleSubmitData({
-      e,
-      schema: categorySchema,
-      form,
-      editId,
-      data: categories,
-      setData: setCategories,
-      setErrors,
-      closeModal: handleCloseModal,
-    });
+  const handleSubmit = async e => {
+    e.preventDefault();
+
+    const result = categorySchema.safeParse(form);
+
+    if (!result.success) {
+      const fieldErrors = {};
+
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    const categoryPayload = {
+      name: form.name,
+      description: form.description,
+      total_products: Number(form.total_products),
+      status: form.status,
+    };
+
+    try {
+      setLoading(true);
+
+      if (editId) {
+        await updateCategory(editId, categoryPayload);
+      } else {
+        await createCategory(categoryPayload);
+      }
+
+      await fetchCategories();
+      handleCloseModal();
+    } catch (error) {
+      console.log("ERROR SAVE CATEGORY:", error);
+      alert(error.message || "Gagal menyimpan kategori");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = id => {
+  const handleDelete = async id => {
     const confirmDelete = window.confirm("Yakin ingin menghapus kategori ini?");
 
-    if (confirmDelete) {
-      const filteredCategories = categories.filter(
-        category => category.id !== id,
-      );
+    if (!confirmDelete) return;
 
-      setCategories(filteredCategories);
+    try {
+      setLoading(true);
+
+      await deleteCategory(id);
+
+      await fetchCategories();
+    } catch (error) {
+      console.log("ERROR DELETE CATEGORY:", error);
+      alert(error.message || "Gagal menghapus kategori");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,13 +202,13 @@ const Category = () => {
     <div className="flex min-h-screen bg-slate-100">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-screen flex-1 flex-col">
         <Navbar
           userName="Admin Toko"
           onLogout={() => alert("Logout nanti disambungkan")}
         />
 
-        <main className="p-6">
+        <main className="flex-1 p-6">
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-slate-800">
@@ -118,6 +219,7 @@ const Category = () => {
                 Tambah, edit, dan hapus data category.
               </p>
             </div>
+
             <Button variant="success" onClick={openAddModal}>
               Tambah Kategori
             </Button>
@@ -133,31 +235,38 @@ const Category = () => {
             />
           </div>
 
-          <Table
-            columns={columnCategory}
-            data={paginatedData}
-            emptyMessage="Belum ada data kategori"
-            actions={item => (
-              <>
-                <Button
-                  size="sm"
-                  variant="warning"
-                  onClick={() => openEditModal(item)}
-                >
-                  Edit
-                </Button>
+          {loading ? (
+            <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
+              Loading data kategori...
+            </div>
+          ) : (
+            <Table
+              columns={columnCategory}
+              data={paginatedData}
+              emptyMessage="Belum ada data kategori"
+              actions={item => (
+                <>
+                  <Button
+                    size="sm"
+                    variant="warning"
+                    onClick={() => openEditModal(item)}
+                  >
+                    Edit
+                  </Button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => handleDelete(item.id)}
-                >
-                  Hapus
-                </Button>
-              </>
-            )}
-          />
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    Hapus
+                  </Button>
+                </>
+              )}
+            />
+          )}
         </main>
+
         <Footer
           currentPage={currentPage}
           totalPages={totalPages}
@@ -165,6 +274,7 @@ const Category = () => {
           nextPage={nextPage}
         />
       </div>
+
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -177,7 +287,7 @@ const Category = () => {
             </Button>
 
             <Button variant="primary" onClick={handleSubmit}>
-              {editId ? "Update" : "Simpan"}
+              {loading ? "Menyimpan..." : editId ? "Update" : "Simpan"}
             </Button>
           </>
         }

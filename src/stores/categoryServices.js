@@ -1,4 +1,4 @@
-import api from "../services/api";
+import api from "../config/api";
 
 const handleApiError = (error, defaultMessage) => {
   console.log("API ERROR:", error);
