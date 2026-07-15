@@ -1,28 +1,18 @@
-import axios from "axios";
+import api from "../config/api";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_HOST_NAME || "http://localhost:4000",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+const getProducts = async () => {
+  try {
+    const response = await api.get("/products");
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Gagal mengambil produk:",
+      error.response?.data || error.message,
+    );
 
-api.interceptors.request.use(
-  config => {
-    const tokenKey = import.meta.env.VITE_TOKEN_KEY || "token";
-    const authType = import.meta.env.VITE_AUTH_TYPE || "Bearer";
+    throw error;
+  }
+};
 
-    const token = localStorage.getItem(tokenKey);
-
-    if (token) {
-      config.headers.Authorization = `${authType} ${token}`;
-    }
-
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
-  },
-);
-
-export default api;
+export default getProducts;

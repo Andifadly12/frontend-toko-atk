@@ -1,22 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import Button from "../Button";
 import productFormData from "../../data/productFromData";
 import Modal from "../Modal";
 import Table from "../Table";
-
 import Form from "../form";
 import columnsProducts from "../columnsProducts/columnsProducts";
+
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
+import usePagination from "../../hooks/usePagination";
+
 import productSchema from "../../utils/productSchema";
 import handleSubmitData from "../../utils/handlesubmit";
 import Footer from "../footer";
-import usePagination from "../../hooks/usePagination";
-import { getProduct } from "../../stores/productServices";
 
-import { useEffect } from "react";
+import getProduct from "../../stores/productServices.js";
 
 const initialProductForm = {
   name: "",
@@ -26,43 +27,61 @@ const initialProductForm = {
   selling_price: "",
   stock: "",
 };
+
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-
-      const data = await getProduct();
-
-      setProducts(data);
-    } catch (error) {
-      console.log("ERROR GET PRODUCTS:", error);
-      alert(error.response?.data?.message || "Gagal mengambil data produk");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  console.log(fetchProducts());
-  const { isModalOpen, openModal, closeModal } = useModal();
+  const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
+
+  const { isModalOpen, openModal, closeModal } = useModal();
 
   const { form, setForm, errors, setErrors, handleChange, resetForm } =
     useForm(initialProductForm);
-  console.log(products);
-  const openAddModal = () => {
-    resetForm();
-    setEditId();
-    openModal();
-  };
+
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
     usePagination(products, 5);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadProducts = async () => {
+      try {
+        const data = await getProduct();
+
+        console.log("DATA DARI API:", data);
+
+        const productList = Array.isArray(data)
+          ? data
+          : data?.data || data?.rows || [];
+
+        if (isActive) {
+          setProducts(productList);
+        }
+      } catch (error) {
+        console.log("ERROR GET PRODUCTS:", error);
+
+        if (isActive) {
+          alert(error.response?.data?.message || "Gagal mengambil data produk");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const openAddModal = () => {
+    resetForm();
+    setEditId(null);
+    openModal();
+  };
 
   const openEditModal = product => {
     setEditId(product.id);
@@ -75,7 +94,8 @@ const Products = () => {
       selling_price: product.selling_price,
       stock: product.stock,
     });
-    setErrors();
+
+    setErrors({});
     openModal();
   };
 
@@ -84,6 +104,7 @@ const Products = () => {
     resetForm();
     setEditId(null);
   };
+
   const handleSubmit = e => {
     handleSubmitData({
       e,
@@ -110,13 +131,13 @@ const Products = () => {
     <div className="flex min-h-screen bg-slate-100">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-screen flex-1 flex-col">
         <Navbar
           userName="Admin Toko"
           onLogout={() => alert("Logout nanti disambungkan")}
         />
 
-        <main className="p-6">
+        <main className="flex-1 p-6">
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-slate-800">
@@ -127,6 +148,7 @@ const Products = () => {
                 Tambah, edit, dan hapus data product.
               </p>
             </div>
+
             <Button variant="success" onClick={openAddModal}>
               Tambah Produk
             </Button>
@@ -163,6 +185,7 @@ const Products = () => {
             />
           )}
         </main>
+
         <Footer
           currentPage={currentPage}
           totalPages={totalPages}
