@@ -23,15 +23,15 @@ import {
   deleteCategory,
 } from "../../stores/categoryServices.js";
 
-import { getProducts } from "../../stores/productServices.js";
-
 const initialCategoryForm = {
   name: "",
+  description: "",
+  status: "active",
+  total_products: "",
 };
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
 
@@ -40,7 +40,12 @@ const Category = () => {
   const { form, setForm, errors, setErrors, handleChange, resetForm } =
     useForm(initialCategoryForm);
 
-  const { search, setSearch, filteredData } = useSearch(categories, ["name"]);
+  const { search, setSearch, filteredData } = useSearch(categories, [
+    "name",
+    "description",
+    "status",
+    "total_products",
+  ]);
 
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
     usePagination(filteredData, 10);
@@ -52,17 +57,13 @@ const Category = () => {
     return [];
   };
 
-  const syncCategoryWithProducts = (categoryList, productList) => {
+  const syncCategoryData = categoryList => {
     return categoryList.map(category => {
-      const totalProducts = productList.filter(
-        product => Number(product.category_id) === Number(category.id),
-      ).length;
-
       return {
         ...category,
-        description: category.description || "-",
-        total_products: totalProducts,
+        description: category.description || "",
         status: category.status || "active",
+        total_products: Number(category.total_products || 0),
       };
     });
   };
@@ -75,27 +76,41 @@ const Category = () => {
       placeholder: "Contoh: Alat Tulis",
       required: true,
     },
+    {
+      name: "description",
+      label: "Deskripsi",
+      type: "textarea",
+      placeholder: "Contoh: Kategori untuk alat tulis kantor",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      placeholder: "Pilih status",
+      required: true,
+      options: [
+        { label: "Aktif", value: "active" },
+        { label: "Tidak Aktif", value: "inactive" },
+      ],
+    },
+    {
+      name: "total_products",
+      label: "Jumlah Produk",
+      type: "number",
+      placeholder: "Contoh: 10",
+      required: true,
+    },
   ];
 
   const fetchCategories = async () => {
     try {
       setLoading(true);
 
-      const [categoryResponse, productResponse] = await Promise.all([
-        getCategories(),
-        getProducts(),
-      ]);
-
+      const categoryResponse = await getCategories();
       const categoryList = normalizeData(categoryResponse);
-      const productList = normalizeData(productResponse);
-
-      const syncedCategories = syncCategoryWithProducts(
-        categoryList,
-        productList,
-      );
+      const syncedCategories = syncCategoryData(categoryList);
 
       setCategories(syncedCategories);
-      setProducts(productList);
     } catch (error) {
       console.log("ERROR GET CATEGORIES:", error);
       alert(error.message || "Gagal mengambil data kategori");
@@ -109,22 +124,12 @@ const Category = () => {
 
     const loadData = async () => {
       try {
-        const [categoryResponse, productResponse] = await Promise.all([
-          getCategories(),
-          getProducts(),
-        ]);
-
+        const categoryResponse = await getCategories();
         const categoryList = normalizeData(categoryResponse);
-        const productList = normalizeData(productResponse);
-
-        const syncedCategories = syncCategoryWithProducts(
-          categoryList,
-          productList,
-        );
+        const syncedCategories = syncCategoryData(categoryList);
 
         if (isActive) {
           setCategories(syncedCategories);
-          setProducts(productList);
         }
       } catch (error) {
         console.log("ERROR LOAD CATEGORIES:", error);
@@ -147,7 +152,13 @@ const Category = () => {
   }, []);
 
   const openAddModal = () => {
-    resetForm();
+    resetForm({
+      name: "",
+      description: "",
+      status: "active",
+      total_products: "",
+    });
+
     setEditId(null);
     setErrors({});
     openModal();
@@ -158,6 +169,9 @@ const Category = () => {
 
     setForm({
       name: category.name || "",
+      description: category.description || "",
+      status: category.status || "active",
+      total_products: category.total_products || 0,
     });
 
     setErrors({});
@@ -166,7 +180,14 @@ const Category = () => {
 
   const handleCloseModal = () => {
     closeModal();
-    resetForm();
+
+    resetForm({
+      name: "",
+      description: "",
+      status: "active",
+      total_products: "",
+    });
+
     setEditId(null);
     setErrors({});
   };
@@ -176,6 +197,14 @@ const Category = () => {
 
     if (!form.name.trim()) {
       fieldErrors.name = "Nama kategori wajib diisi";
+    }
+
+    if (!form.status) {
+      fieldErrors.status = "Status wajib dipilih";
+    }
+
+    if (form.total_products === "" || Number(form.total_products) < 0) {
+      fieldErrors.total_products = "Jumlah produk tidak boleh kosong/minus";
     }
 
     setErrors(fieldErrors);
@@ -192,6 +221,9 @@ const Category = () => {
 
     const categoryPayload = {
       name: form.name.trim(),
+      description: form.description.trim(),
+      status: form.status,
+      total_products: Number(form.total_products),
     };
 
     try {
@@ -214,15 +246,6 @@ const Category = () => {
   };
 
   const handleDelete = async id => {
-    const categoryHasProduct = products.some(
-      product => Number(product.category_id) === Number(id),
-    );
-
-    if (categoryHasProduct) {
-      alert("Kategori ini masih dipakai oleh produk, tidak bisa dihapus.");
-      return;
-    }
-
     const confirmDelete = window.confirm("Yakin ingin menghapus kategori ini?");
 
     if (!confirmDelete) return;
