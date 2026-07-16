@@ -5,6 +5,7 @@ import Sidebar from "../Sidebar";
 import Button from "../Button";
 import Badge from "../badge";
 import Text from "../Text";
+import Input from "../input";
 import Footer from "../footer";
 
 import formatRupiah from "../../utils/formatRupiah";
@@ -13,10 +14,19 @@ import useCart from "../../hooks/useCart";
 import usePagination from "../../hooks/usePagination";
 
 import { getProducts } from "../../stores/productServices";
+import { getCategories } from "../../stores/categoryServices";
+import { getCustomers } from "../../stores/costumersServices";
 import { createSale } from "../../stores/salesServices";
 
 const Sales = () => {
   const [products, setProducts] = useState([]);
+  const [, setCategories] = useState([]);
+  const [customers, setCustomers] = useState([]);
+
+  const [customerId, setCustomerId] = useState("");
+  const [paidAmount, setPaidAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+
   const [loading, setLoading] = useState(true);
 
   const {
@@ -33,32 +43,91 @@ const Sales = () => {
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
     usePagination(products, 5);
 
-  const normalizeProducts = data => {
+  const normalizeData = data => {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.data)) return data.data;
     if (Array.isArray(data?.rows)) return data.rows;
     return [];
   };
 
+  const syncProductsWithCategories = (productList, categoryList) => {
+    return productList.map(product => {
+      const category = categoryList.find(
+        item => Number(item.id) === Number(product.category_id),
+      );
+
+      return {
+        ...product,
+        category_name:
+          product.category_name || product.category || category?.name || "-",
+      };
+    });
+  };
+
+  const changeAmount = Number(paidAmount || 0) - Number(totalPrice || 0);
+
+  const fetchProducts = async () => {
+    try {
+      const [productResponse, categoryResponse] = await Promise.all([
+        getProducts(),
+        getCategories(),
+      ]);
+
+      const productList = normalizeData(productResponse);
+      const categoryList = normalizeData(categoryResponse);
+
+      const syncedProducts = syncProductsWithCategories(
+        productList,
+        categoryList,
+      );
+
+      setProducts(syncedProducts);
+      setCategories(categoryList);
+    } catch (error) {
+      console.log("ERROR GET PRODUCTS:", error);
+      alert(error.message || "Gagal mengambil data produk");
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const customerResponse = await getCustomers();
+      const customerList = normalizeData(customerResponse);
+
+      setCustomers(customerList);
+    } catch (error) {
+      console.log("ERROR GET CUSTOMERS:", error);
+      alert(error.message || "Gagal mengambil data customer");
+    }
+  };
+
   useEffect(() => {
     let isActive = true;
 
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
-        const data = await getProducts();
+        const [productResponse, categoryResponse, customerResponse] =
+          await Promise.all([getProducts(), getCategories(), getCustomers()]);
 
-        console.log("DATA PRODUK DARI API:", data);
+        const productList = normalizeData(productResponse);
+        const categoryList = normalizeData(categoryResponse);
+        const customerList = normalizeData(customerResponse);
 
-        const productList = normalizeProducts(data);
+        const syncedProducts = syncProductsWithCategories(
+          productList,
+          categoryList,
+        );
 
         if (isActive) {
-          setProducts(productList);
+          setProducts(syncedProducts);
+          setCategories(categoryList);
+          setCustomers(customerList);
         }
       } catch (error) {
-        console.log("ERROR GET PRODUCTS:", error);
+        console.log("ERROR LOAD SALES DATA:", error);
 
         if (isActive) {
-          alert(error.message || "Gagal mengambil data produk");
+          alert(error.message || "Gagal mengambil data sales");
         }
       } finally {
         if (isActive) {
@@ -67,35 +136,23 @@ const Sales = () => {
       }
     };
 
-    loadProducts();
+    loadData();
 
     return () => {
       isActive = false;
     };
   }, []);
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-
-      const data = await getProducts();
-
-      const productList = normalizeProducts(data);
-
-      setProducts(productList);
-    } catch (error) {
-      console.log("ERROR GET PRODUCTS:", error);
-      alert(error.message || "Gagal mengambil data produk");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddToCart = product => {
     const existingItem = cartItems.find(item => item.id === product.id);
 
-    if (existingItem && existingItem.qty >= product.stock) {
+    if (existingItem && existingItem.qty >= Number(product.stock || 0)) {
       alert("Jumlah barang sudah mencapai stok tersedia");
+      return;
+    }
+
+    if (Number(product.stock || 0) <= 0) {
+      alert("Stok produk habis");
       return;
     }
 
@@ -108,7 +165,7 @@ const Sales = () => {
 
     if (!product || !cartItem) return;
 
-    if (cartItem.qty >= product.stock) {
+    if (cartItem.qty >= Number(product.stock || 0)) {
       alert("Jumlah barang sudah mencapai stok tersedia");
       return;
     }
@@ -122,10 +179,20 @@ const Sales = () => {
       return;
     }
 
+    if (!paidAmount || Number(paidAmount) <= 0) {
+      alert("Uang dibayar wajib diisi");
+      return;
+    }
+
+    if (Number(paidAmount) < Number(totalPrice)) {
+      alert("Uang dibayar kurang dari total belanja");
+      return;
+    }
+
     const salePayload = {
-      customer_id: null,
-      paid_amount: totalPrice,
-      payment_method: "cash",
+      customer_id: customerId ? Number(customerId) : null,
+      paid_amount: Number(paidAmount),
+      payment_method: paymentMethod,
       items: cartItems.map(item => ({
         product_id: item.id,
         quantity: item.qty,
@@ -135,15 +202,17 @@ const Sales = () => {
     try {
       setLoading(true);
 
-      console.log("DATA CHECKOUT:", salePayload);
-
       await createSale(salePayload);
 
       alert("Transaksi berhasil disimpan");
 
       clearCart();
+      setCustomerId("");
+      setPaidAmount("");
+      setPaymentMethod("cash");
 
       await fetchProducts();
+      await fetchCustomers();
     } catch (error) {
       console.log("ERROR CHECKOUT:", error);
       alert(error.message || "Gagal menyimpan transaksi");
@@ -220,14 +289,15 @@ const Sales = () => {
                             >
                               <td className="px-4 py-3">
                                 <Text weight="semibold">{product.name}</Text>
+
                                 <Text size="sm" color="muted">
-                                  Supplier: {product.supplier || "-"}
+                                  SKU: {product.sku || "-"}
                                 </Text>
                               </td>
 
                               <td className="px-4 py-3">
                                 <Text size="sm" color="muted">
-                                  {product.category || "-"}
+                                  {product.category_name || "-"}
                                 </Text>
                               </td>
 
@@ -244,9 +314,9 @@ const Sales = () => {
                               <td className="px-4 py-3">
                                 <Badge
                                   variant={
-                                    product.stock <= 0
+                                    Number(product.stock || 0) <= 0
                                       ? "danger"
-                                      : product.stock <= 10
+                                      : Number(product.stock || 0) <= 10
                                         ? "warning"
                                         : "success"
                                   }
@@ -260,7 +330,7 @@ const Sales = () => {
                                   size="sm"
                                   variant="success"
                                   onClick={() => handleAddToCart(product)}
-                                  disabled={product.stock <= 0}
+                                  disabled={Number(product.stock || 0) <= 0}
                                 >
                                   Tambah
                                 </Button>
@@ -304,6 +374,7 @@ const Sales = () => {
                         <div className="mb-3 flex items-start justify-between gap-3">
                           <div>
                             <Text weight="semibold">{item.name}</Text>
+
                             <Text size="sm" color="muted">
                               {formatRupiah(item.selling_price)}
                             </Text>
@@ -355,11 +426,70 @@ const Sales = () => {
                 </div>
 
                 <div className="mt-6 border-t border-slate-200 pt-4">
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="mb-4">
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      Customer
+                    </label>
+
+                    <select
+                      value={customerId}
+                      onChange={e => setCustomerId(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    >
+                      <option value="">Umum / Tanpa Customer</option>
+
+                      {customers.map(customer => (
+                        <option key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      Metode Pembayaran
+                    </label>
+
+                    <select
+                      value={paymentMethod}
+                      onChange={e => setPaymentMethod(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    >
+                      <option value="cash">Cash</option>
+                      <option value="transfer">Transfer</option>
+                      <option value="qris">QRIS</option>
+                      <option value="debit">Debit</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <Input
+                      label="Uang Dibayar"
+                      name="paid_amount"
+                      type="number"
+                      value={paidAmount}
+                      onChange={e => setPaidAmount(e.target.value)}
+                      placeholder="Contoh: 50000"
+                    />
+                  </div>
+
+                  <div className="mb-2 flex items-center justify-between">
                     <Text weight="bold">Total</Text>
 
                     <Text weight="bold" color="primary">
                       {formatRupiah(totalPrice)}
+                    </Text>
+                  </div>
+
+                  <div className="mb-4 flex items-center justify-between">
+                    <Text weight="bold">Kembalian</Text>
+
+                    <Text
+                      weight="bold"
+                      color={changeAmount < 0 ? "danger" : "success"}
+                    >
+                      {formatRupiah(changeAmount)}
                     </Text>
                   </div>
 
