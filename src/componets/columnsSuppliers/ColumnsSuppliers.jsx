@@ -1,4 +1,3 @@
-import Badge from "../badge";
 import Text from "../Text";
 
 const columnsSuppliers = [
@@ -8,39 +7,32 @@ const columnsSuppliers = [
     render: item => <Text weight="semibold">{item.name}</Text>,
   },
   {
-    key: "contact_person",
-    label: "Contact Person",
-    render: item => (
-      <Text size="sm" color="muted">
-        {item.contact_person}
-      </Text>
-    ),
-  },
-  {
     key: "phone",
     label: "Telepon",
     render: item => (
       <Text size="sm" color="muted">
-        {item.phone}
+        {item.phone || "-"}
       </Text>
     ),
   },
   {
-    key: "email",
-    label: "Email",
+    key: "address",
+    label: "Alamat",
     render: item => (
       <Text size="sm" color="muted">
-        {item.email || "-"}
+        {item.address || "-"}
       </Text>
     ),
   },
   {
-    key: "status",
-    label: "Status",
+    key: "created_at",
+    label: "Dibuat",
     render: item => (
-      <Badge variant={item.status === "active" ? "success" : "danger"}>
-        {item.status}
-      </Badge>
+      <Text size="sm" color="muted">
+        {item.created_at
+          ? new Date(item.created_at).toLocaleDateString("id-ID")
+          : "-"}
+      </Text>
     ),
   },
 ];

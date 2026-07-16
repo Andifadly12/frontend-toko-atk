@@ -3,19 +3,18 @@ import { useEffect, useState } from "react";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import Button from "../Button";
+import Input from "../input";
 import Modal from "../Modal";
 import Table from "../Table";
 import Form from "../form";
 import Footer from "../footer";
 
-import supplierFormData from "../../data/supplierFormData";
 import columnsSuppliers from "../columnsSuppliers/columnsSuppliers";
 
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
+import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
-
-import supplierSchema from "../../utils/supplierSchema";
 
 import {
   getSuppliers,
@@ -26,11 +25,8 @@ import {
 
 const initialSupplierForm = {
   name: "",
-  contact_person: "",
   phone: "",
-  email: "",
   address: "",
-  status: "active",
 };
 
 const Suppliers = () => {
@@ -43,8 +39,14 @@ const Suppliers = () => {
   const { form, setForm, errors, setErrors, handleChange, resetForm } =
     useForm(initialSupplierForm);
 
+  const { search, setSearch, filteredData } = useSearch(suppliers, [
+    "name",
+    "phone",
+    "address",
+  ]);
+
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
-    usePagination(suppliers, 5);
+    usePagination(filteredData, 5);
 
   const normalizeSuppliers = data => {
     if (Array.isArray(data)) return data;
@@ -53,22 +55,59 @@ const Suppliers = () => {
     return [];
   };
 
+  const supplierFormFields = [
+    {
+      name: "name",
+      label: "Nama Supplier",
+      type: "text",
+      placeholder: "Contoh: PT Sinar ATK",
+      required: true,
+    },
+    {
+      name: "phone",
+      label: "Telepon",
+      type: "text",
+      placeholder: "Contoh: 081234567890",
+      required: true,
+    },
+    {
+      name: "address",
+      label: "Alamat",
+      type: "textarea",
+      placeholder: "Contoh: Bulukumba",
+      required: true,
+    },
+  ];
+
+  const fetchSuppliers = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getSuppliers();
+      const supplierList = normalizeSuppliers(data);
+
+      setSuppliers(supplierList);
+    } catch (error) {
+      console.log("ERROR GET SUPPLIERS:", error);
+      alert(error.message || "Gagal mengambil data supplier");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let isActive = true;
 
     const loadSuppliers = async () => {
       try {
         const data = await getSuppliers();
-
-        console.log("DATA SUPPLIER DARI API:", data);
-
         const supplierList = normalizeSuppliers(data);
 
         if (isActive) {
           setSuppliers(supplierList);
         }
       } catch (error) {
-        console.log("ERROR GET SUPPLIERS:", error);
+        console.log("ERROR LOAD SUPPLIERS:", error);
 
         if (isActive) {
           alert(error.message || "Gagal mengambil data supplier");
@@ -87,25 +126,13 @@ const Suppliers = () => {
     };
   }, []);
 
-  const fetchSuppliers = async () => {
-    try {
-      setLoading(true);
-
-      const data = await getSuppliers();
-
-      const supplierList = normalizeSuppliers(data);
-
-      setSuppliers(supplierList);
-    } catch (error) {
-      console.log("ERROR GET SUPPLIERS:", error);
-      alert(error.message || "Gagal mengambil data supplier");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const openAddModal = () => {
-    resetForm();
+    resetForm({
+      name: "",
+      phone: "",
+      address: "",
+    });
+
     setEditId(null);
     setErrors({});
     openModal();
@@ -116,11 +143,8 @@ const Suppliers = () => {
 
     setForm({
       name: supplier.name || "",
-      contact_person: supplier.contact_person || "",
       phone: supplier.phone || "",
-      email: supplier.email || "",
       address: supplier.address || "",
-      status: supplier.status || "active",
     });
 
     setErrors({});
@@ -129,34 +153,48 @@ const Suppliers = () => {
 
   const handleCloseModal = () => {
     closeModal();
-    resetForm();
+
+    resetForm({
+      name: "",
+      phone: "",
+      address: "",
+    });
+
     setEditId(null);
     setErrors({});
+  };
+
+  const validateForm = () => {
+    const fieldErrors = {};
+
+    if (!form.name.trim()) {
+      fieldErrors.name = "Nama supplier wajib diisi";
+    }
+
+    if (!form.phone.trim()) {
+      fieldErrors.phone = "Nomor telepon wajib diisi";
+    }
+
+    if (!form.address.trim()) {
+      fieldErrors.address = "Alamat wajib diisi";
+    }
+
+    setErrors(fieldErrors);
+
+    return Object.keys(fieldErrors).length === 0;
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const result = supplierSchema.safeParse(form);
+    const isValid = validateForm();
 
-    if (!result.success) {
-      const fieldErrors = {};
-
-      result.error.issues.forEach(issue => {
-        fieldErrors[issue.path[0]] = issue.message;
-      });
-
-      setErrors(fieldErrors);
-      return;
-    }
+    if (!isValid) return;
 
     const supplierPayload = {
-      name: form.name,
-      contact_person: form.contact_person,
-      phone: form.phone,
-      email: form.email,
-      address: form.address,
-      status: form.status,
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
     };
 
     try {
@@ -224,6 +262,16 @@ const Suppliers = () => {
             </Button>
           </div>
 
+          <div className="mb-5 rounded-2xl bg-white p-4 shadow-sm">
+            <Input
+              label="Cari Supplier"
+              name="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari nama, telepon, atau alamat..."
+            />
+          </div>
+
           {loading ? (
             <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
               Loading data supplier...
@@ -282,7 +330,7 @@ const Suppliers = () => {
         }
       >
         <Form
-          fields={supplierFormData}
+          fields={supplierFormFields}
           form={form}
           errors={errors}
           onChange={handleChange}
