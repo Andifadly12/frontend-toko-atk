@@ -1,5 +1,6 @@
-import Text from "../Text";
 import Badge from "../badge";
+import Text from "../Text";
+
 const columnCategory = [
   {
     key: "name",
@@ -19,15 +20,15 @@ const columnCategory = [
     key: "total_products",
     label: "Jumlah Produk",
     render: item => (
-      <Badge variant="primary">{item.total_products} Produk</Badge>
+      <Badge variant="primary">{item.total_products || 0} Produk</Badge>
     ),
   },
   {
     key: "status",
     label: "Status",
     render: item => (
-      <Badge variant={item.status === "active" ? "success" : "danger"}>
-        {item.status === "active" ? "Aktif" : "Tidak Aktif"}
+      <Badge variant={item.status === "inactive" ? "danger" : "success"}>
+        {item.status === "inactive" ? "Tidak Aktif" : "Aktif"}
       </Badge>
     ),
   },

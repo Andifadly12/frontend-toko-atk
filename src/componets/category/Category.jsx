@@ -15,8 +15,6 @@ import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
 
 import columnCategory from "../ColumnsCategory";
-import categorySchema from "../../utils/categorySchema";
-import categorysData from "../../data/categorysData";
 
 import {
   getCategories,
@@ -25,15 +23,15 @@ import {
   deleteCategory,
 } from "../../stores/categoryServices.js";
 
+import { getProducts } from "../../stores/productServices.js";
+
 const initialCategoryForm = {
   name: "",
-  description: "",
-  total_products: "",
-  status: "active",
 };
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
 
@@ -42,38 +40,94 @@ const Category = () => {
   const { form, setForm, errors, setErrors, handleChange, resetForm } =
     useForm(initialCategoryForm);
 
-  const { search, setSearch, filteredData } = useSearch(categories, [
-    "name",
-    "description",
-    "status",
-  ]);
+  const { search, setSearch, filteredData } = useSearch(categories, ["name"]);
 
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
     usePagination(filteredData, 10);
 
-  const normalizeCategories = data => {
+  const normalizeData = data => {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.data)) return data.data;
     if (Array.isArray(data?.rows)) return data.rows;
     return [];
   };
 
+  const syncCategoryWithProducts = (categoryList, productList) => {
+    return categoryList.map(category => {
+      const totalProducts = productList.filter(
+        product => Number(product.category_id) === Number(category.id),
+      ).length;
+
+      return {
+        ...category,
+        description: category.description || "-",
+        total_products: totalProducts,
+        status: category.status || "active",
+      };
+    });
+  };
+
+  const categoryFormFields = [
+    {
+      name: "name",
+      label: "Nama Kategori",
+      type: "text",
+      placeholder: "Contoh: Alat Tulis",
+      required: true,
+    },
+  ];
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+
+      const [categoryResponse, productResponse] = await Promise.all([
+        getCategories(),
+        getProducts(),
+      ]);
+
+      const categoryList = normalizeData(categoryResponse);
+      const productList = normalizeData(productResponse);
+
+      const syncedCategories = syncCategoryWithProducts(
+        categoryList,
+        productList,
+      );
+
+      setCategories(syncedCategories);
+      setProducts(productList);
+    } catch (error) {
+      console.log("ERROR GET CATEGORIES:", error);
+      alert(error.message || "Gagal mengambil data kategori");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let isActive = true;
 
-    const loadCategories = async () => {
+    const loadData = async () => {
       try {
-        const data = await getCategories();
+        const [categoryResponse, productResponse] = await Promise.all([
+          getCategories(),
+          getProducts(),
+        ]);
 
-        console.log("DATA CATEGORY DARI API:", data);
+        const categoryList = normalizeData(categoryResponse);
+        const productList = normalizeData(productResponse);
 
-        const categoryList = normalizeCategories(data);
+        const syncedCategories = syncCategoryWithProducts(
+          categoryList,
+          productList,
+        );
 
         if (isActive) {
-          setCategories(categoryList);
+          setCategories(syncedCategories);
+          setProducts(productList);
         }
       } catch (error) {
-        console.log("ERROR GET CATEGORIES:", error);
+        console.log("ERROR LOAD CATEGORIES:", error);
 
         if (isActive) {
           alert(error.message || "Gagal mengambil data kategori");
@@ -85,29 +139,12 @@ const Category = () => {
       }
     };
 
-    loadCategories();
+    loadData();
 
     return () => {
       isActive = false;
     };
   }, []);
-
-  const fetchCategories = async () => {
-    try {
-      setLoading(true);
-
-      const data = await getCategories();
-
-      const categoryList = normalizeCategories(data);
-
-      setCategories(categoryList);
-    } catch (error) {
-      console.log("ERROR GET CATEGORIES:", error);
-      alert(error.message || "Gagal mengambil data kategori");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const openAddModal = () => {
     resetForm();
@@ -121,9 +158,6 @@ const Category = () => {
 
     setForm({
       name: category.name || "",
-      description: category.description || "",
-      total_products: category.total_products || "",
-      status: category.status || "active",
     });
 
     setErrors({});
@@ -137,27 +171,27 @@ const Category = () => {
     setErrors({});
   };
 
+  const validateForm = () => {
+    const fieldErrors = {};
+
+    if (!form.name.trim()) {
+      fieldErrors.name = "Nama kategori wajib diisi";
+    }
+
+    setErrors(fieldErrors);
+
+    return Object.keys(fieldErrors).length === 0;
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const result = categorySchema.safeParse(form);
+    const isValid = validateForm();
 
-    if (!result.success) {
-      const fieldErrors = {};
-
-      result.error.issues.forEach(issue => {
-        fieldErrors[issue.path[0]] = issue.message;
-      });
-
-      setErrors(fieldErrors);
-      return;
-    }
+    if (!isValid) return;
 
     const categoryPayload = {
-      name: form.name,
-      description: form.description,
-      total_products: Number(form.total_products),
-      status: form.status,
+      name: form.name.trim(),
     };
 
     try {
@@ -180,6 +214,15 @@ const Category = () => {
   };
 
   const handleDelete = async id => {
+    const categoryHasProduct = products.some(
+      product => Number(product.category_id) === Number(id),
+    );
+
+    if (categoryHasProduct) {
+      alert("Kategori ini masih dipakai oleh produk, tidak bisa dihapus.");
+      return;
+    }
+
     const confirmDelete = window.confirm("Yakin ingin menghapus kategori ini?");
 
     if (!confirmDelete) return;
@@ -293,7 +336,7 @@ const Category = () => {
         }
       >
         <Form
-          fields={categorysData}
+          fields={categoryFormFields}
           form={form}
           errors={errors}
           onChange={handleChange}
