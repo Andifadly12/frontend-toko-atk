@@ -1,7 +1,6 @@
-import Badge from "../badge";
 import Text from "../Text";
 
-const ColumnsCustomers = [
+const columnsCustomers = [
   {
     key: "name",
     label: "Customer",
@@ -12,45 +11,30 @@ const ColumnsCustomers = [
     label: "Telepon",
     render: item => (
       <Text size="sm" color="muted">
-        {item.phone}
+        {item.phone || "-"}
       </Text>
     ),
   },
   {
-    key: "email",
-    label: "Email",
+    key: "address",
+    label: "Alamat",
     render: item => (
       <Text size="sm" color="muted">
-        {item.email || "-"}
+        {item.address || "-"}
       </Text>
     ),
   },
   {
-    key: "customer_type",
-    label: "Tipe",
+    key: "created_at",
+    label: "Dibuat",
     render: item => (
-      <Badge
-        variant={
-          item.customer_type === "reseller"
-            ? "primary"
-            : item.customer_type === "corporate"
-              ? "warning"
-              : "success"
-        }
-      >
-        {item.customer_type}
-      </Badge>
-    ),
-  },
-  {
-    key: "status",
-    label: "Status",
-    render: item => (
-      <Badge variant={item.status === "active" ? "success" : "danger"}>
-        {item.status}
-      </Badge>
+      <Text size="sm" color="muted">
+        {item.created_at
+          ? new Date(item.created_at).toLocaleDateString("id-ID")
+          : "-"}
+      </Text>
     ),
   },
 ];
 
-export default ColumnsCustomers;
+export default columnsCustomers;

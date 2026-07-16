@@ -3,19 +3,18 @@ import { useEffect, useState } from "react";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import Button from "../Button";
+import Input from "../input";
 import Modal from "../Modal";
 import Table from "../Table";
 import Form from "../form";
 import Footer from "../footer";
 
-import customerFormData from "../../data/customerFormData";
 import columnsCustomers from "../columnsCustomers/columnsCustomers";
 
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
+import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
-
-import customerSchema from "../../utils/customerSchema";
 
 import {
   getCustomers,
@@ -27,10 +26,7 @@ import {
 const initialCustomerForm = {
   name: "",
   phone: "",
-  email: "",
   address: "",
-  customer_type: "retail",
-  status: "active",
 };
 
 const Customers = () => {
@@ -43,8 +39,14 @@ const Customers = () => {
   const { form, setForm, errors, setErrors, handleChange, resetForm } =
     useForm(initialCustomerForm);
 
+  const { search, setSearch, filteredData } = useSearch(customers, [
+    "name",
+    "phone",
+    "address",
+  ]);
+
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
-    usePagination(customers, 10);
+    usePagination(filteredData, 10);
 
   const normalizeCustomers = data => {
     if (Array.isArray(data)) return data;
@@ -53,22 +55,59 @@ const Customers = () => {
     return [];
   };
 
+  const customerFormFields = [
+    {
+      name: "name",
+      label: "Nama Customer",
+      type: "text",
+      placeholder: "Contoh: Sekolah SMA 1",
+      required: true,
+    },
+    {
+      name: "phone",
+      label: "Telepon",
+      type: "text",
+      placeholder: "Contoh: 081234567890",
+      required: true,
+    },
+    {
+      name: "address",
+      label: "Alamat",
+      type: "textarea",
+      placeholder: "Contoh: Bulukumba",
+      required: true,
+    },
+  ];
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getCustomers();
+      const customerList = normalizeCustomers(data);
+
+      setCustomers(customerList);
+    } catch (error) {
+      console.log("ERROR GET CUSTOMERS:", error);
+      alert(error.message || "Gagal mengambil data customer");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let isActive = true;
 
     const loadCustomers = async () => {
       try {
         const data = await getCustomers();
-
-        console.log("DATA CUSTOMER DARI API:", data);
-
         const customerList = normalizeCustomers(data);
 
         if (isActive) {
           setCustomers(customerList);
         }
       } catch (error) {
-        console.log("ERROR GET CUSTOMERS:", error);
+        console.log("ERROR LOAD CUSTOMERS:", error);
 
         if (isActive) {
           alert(error.message || "Gagal mengambil data customer");
@@ -87,25 +126,13 @@ const Customers = () => {
     };
   }, []);
 
-  const fetchCustomers = async () => {
-    try {
-      setLoading(true);
-
-      const data = await getCustomers();
-
-      const customerList = normalizeCustomers(data);
-
-      setCustomers(customerList);
-    } catch (error) {
-      console.log("ERROR GET CUSTOMERS:", error);
-      alert(error.message || "Gagal mengambil data customer");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const openAddModal = () => {
-    resetForm();
+    resetForm({
+      name: "",
+      phone: "",
+      address: "",
+    });
+
     setEditId(null);
     setErrors({});
     openModal();
@@ -117,10 +144,7 @@ const Customers = () => {
     setForm({
       name: customer.name || "",
       phone: customer.phone || "",
-      email: customer.email || "",
       address: customer.address || "",
-      customer_type: customer.customer_type || "retail",
-      status: customer.status || "active",
     });
 
     setErrors({});
@@ -129,34 +153,48 @@ const Customers = () => {
 
   const handleCloseModal = () => {
     closeModal();
-    resetForm();
+
+    resetForm({
+      name: "",
+      phone: "",
+      address: "",
+    });
+
     setEditId(null);
     setErrors({});
+  };
+
+  const validateForm = () => {
+    const fieldErrors = {};
+
+    if (!form.name.trim()) {
+      fieldErrors.name = "Nama customer wajib diisi";
+    }
+
+    if (!form.phone.trim()) {
+      fieldErrors.phone = "Nomor telepon wajib diisi";
+    }
+
+    if (!form.address.trim()) {
+      fieldErrors.address = "Alamat wajib diisi";
+    }
+
+    setErrors(fieldErrors);
+
+    return Object.keys(fieldErrors).length === 0;
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const result = customerSchema.safeParse(form);
+    const isValid = validateForm();
 
-    if (!result.success) {
-      const fieldErrors = {};
-
-      result.error.issues.forEach(issue => {
-        fieldErrors[issue.path[0]] = issue.message;
-      });
-
-      setErrors(fieldErrors);
-      return;
-    }
+    if (!isValid) return;
 
     const customerPayload = {
-      name: form.name,
-      phone: form.phone,
-      email: form.email,
-      address: form.address,
-      customer_type: form.customer_type,
-      status: form.status,
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
     };
 
     try {
@@ -202,7 +240,10 @@ const Customers = () => {
       <Sidebar />
 
       <div className="flex min-h-screen flex-1 flex-col">
-        <Navbar onLogout={() => alert("Logout nanti disambungkan")} />
+        <Navbar
+          userName="Admin Toko"
+          onLogout={() => alert("Logout nanti disambungkan")}
+        />
 
         <main className="flex-1 p-6">
           <div className="mb-6 flex items-center justify-between">
@@ -219,6 +260,16 @@ const Customers = () => {
             <Button variant="success" onClick={openAddModal}>
               Tambah Customer
             </Button>
+          </div>
+
+          <div className="mb-5 rounded-2xl bg-white p-4 shadow-sm">
+            <Input
+              label="Cari Customer"
+              name="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari nama, telepon, atau alamat..."
+            />
           </div>
 
           {loading ? (
@@ -279,7 +330,7 @@ const Customers = () => {
         }
       >
         <Form
-          fields={customerFormData}
+          fields={customerFormFields}
           form={form}
           errors={errors}
           onChange={handleChange}
