@@ -15,10 +15,14 @@ import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
+
 import {
   supplierFormFields,
   initialSupplierForm,
 } from "../../utils/supplierFormFields.js";
+
+import { supplierSchema } from "../../utils/supplierSchema.js";
+
 import {
   getSuppliers,
   createSupplier,
@@ -49,6 +53,7 @@ const Suppliers = () => {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.data)) return data.data;
     if (Array.isArray(data?.rows)) return data.rows;
+
     return [];
   };
 
@@ -100,12 +105,7 @@ const Suppliers = () => {
   }, []);
 
   const openAddModal = () => {
-    resetForm({
-      name: "",
-      phone: "",
-      address: "",
-    });
-
+    resetForm(initialSupplierForm);
     setEditId(null);
     setErrors({});
     openModal();
@@ -126,49 +126,36 @@ const Suppliers = () => {
 
   const handleCloseModal = () => {
     closeModal();
-
-    resetForm({
-      name: "",
-      phone: "",
-      address: "",
-    });
-
+    resetForm(initialSupplierForm);
     setEditId(null);
     setErrors({});
-  };
-
-  const validateForm = () => {
-    const fieldErrors = {};
-
-    if (!form.name.trim()) {
-      fieldErrors.name = "Nama supplier wajib diisi";
-    }
-
-    if (!form.phone.trim()) {
-      fieldErrors.phone = "Nomor telepon wajib diisi";
-    }
-
-    if (!form.address.trim()) {
-      fieldErrors.address = "Alamat wajib diisi";
-    }
-
-    setErrors(fieldErrors);
-
-    return Object.keys(fieldErrors).length === 0;
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const isValid = validateForm();
+    // Validasi hanya menggunakan supplierSchema
+    const validationResult = supplierSchema.safeParse(form);
 
-    if (!isValid) return;
+    if (!validationResult.success) {
+      const fieldErrors = {};
 
-    const supplierPayload = {
-      name: form.name.trim(),
-      phone: form.phone.trim(),
-      address: form.address.trim(),
-    };
+      validationResult.error.issues.forEach(issue => {
+        const fieldName = issue.path[0];
+
+        if (fieldName) {
+          fieldErrors[fieldName] = issue.message;
+        }
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
+
+    // Data dari Zod sudah divalidasi dan di-trim
+    const supplierPayload = validationResult.data;
 
     try {
       setLoading(true);
@@ -198,7 +185,6 @@ const Suppliers = () => {
       setLoading(true);
 
       await deleteSupplier(id);
-
       await fetchSuppliers();
     } catch (error) {
       console.log("ERROR DELETE SUPPLIER:", error);
@@ -292,11 +278,15 @@ const Suppliers = () => {
         size="lg"
         footer={
           <>
-            <Button variant="outline" onClick={handleCloseModal}>
+            <Button
+              variant="outline"
+              onClick={handleCloseModal}
+              disabled={loading}
+            >
               Batal
             </Button>
 
-            <Button variant="primary" onClick={handleSubmit}>
+            <Button variant="primary" onClick={handleSubmit} disabled={loading}>
               {loading ? "Menyimpan..." : editId ? "Update" : "Simpan"}
             </Button>
           </>
