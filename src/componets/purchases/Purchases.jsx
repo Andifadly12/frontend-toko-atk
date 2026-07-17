@@ -13,7 +13,10 @@ import columnsPurchases from "../columnsPurchases/columnsPurchases";
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import usePagination from "../../hooks/usePagination";
-
+import {
+  purchaseFormFields,
+  initialPurchaseForm,
+} from "../../utils/purchaseFormFields";
 import {
   getPurchases,
   getPurchaseById,
@@ -25,17 +28,10 @@ import {
 import { getProducts } from "../../stores/productServices";
 import { getSuppliers } from "../../stores/supplierServices";
 
-const initialPurchaseForm = {
-  supplier_id: "",
-  product_id: "",
-  quantity: "",
-  price: "",
-};
-
 const Purchases = () => {
   const [purchases, setPurchases] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
+  const [, setProducts] = useState([]);
+  const [, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
 
@@ -58,44 +54,6 @@ const Purchases = () => {
     if (data?.data) return data.data;
     return data;
   };
-
-  const purchaseFormFields = [
-    {
-      name: "supplier_id",
-      label: "Supplier",
-      type: "select",
-      placeholder: "Pilih supplier",
-      options: suppliers.map(supplier => ({
-        label: supplier.name,
-        value: supplier.id,
-      })),
-    },
-    {
-      name: "product_id",
-      label: "Produk",
-      type: "select",
-      placeholder: "Pilih produk",
-      required: true,
-      options: products.map(product => ({
-        label: `${product.name} - Stok: ${product.stock}`,
-        value: product.id,
-      })),
-    },
-    {
-      name: "quantity",
-      label: "Jumlah",
-      type: "number",
-      placeholder: "Contoh: 10",
-      required: true,
-    },
-    {
-      name: "price",
-      label: "Harga Beli",
-      type: "number",
-      placeholder: "Contoh: 5000",
-      required: true,
-    },
-  ];
 
   const enrichPurchasesWithDetail = async purchaseList => {
     const result = await Promise.all(
