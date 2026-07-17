@@ -15,19 +15,16 @@ import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
-
+import {
+  supplierFormFields,
+  initialSupplierForm,
+} from "../../utils/supplierFormFields.js";
 import {
   getSuppliers,
   createSupplier,
   updateSupplier,
   deleteSupplier,
 } from "../../stores/supplierServices";
-
-const initialSupplierForm = {
-  name: "",
-  phone: "",
-  address: "",
-};
 
 const Suppliers = () => {
   const [suppliers, setSuppliers] = useState([]);
@@ -54,30 +51,6 @@ const Suppliers = () => {
     if (Array.isArray(data?.rows)) return data.rows;
     return [];
   };
-
-  const supplierFormFields = [
-    {
-      name: "name",
-      label: "Nama Supplier",
-      type: "text",
-      placeholder: "Contoh: PT Sinar ATK",
-      required: true,
-    },
-    {
-      name: "phone",
-      label: "Telepon",
-      type: "text",
-      placeholder: "Contoh: 081234567890",
-      required: true,
-    },
-    {
-      name: "address",
-      label: "Alamat",
-      type: "textarea",
-      placeholder: "Contoh: Bulukumba",
-      required: true,
-    },
-  ];
 
   const fetchSuppliers = async () => {
     try {
