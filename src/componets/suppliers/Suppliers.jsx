@@ -21,7 +21,7 @@ import {
   initialSupplierForm,
 } from "../../utils/supplierFormFields.js";
 
-import { supplierSchema } from "../../utils/supplierSchema.js";
+import supplierSchema from "../../utils/supplierSchema.js";
 
 import {
   getSuppliers,

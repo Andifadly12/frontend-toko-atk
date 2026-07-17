@@ -13,10 +13,14 @@ import columnsPurchases from "../columnsPurchases/columnsPurchases";
 import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import usePagination from "../../hooks/usePagination";
+
 import {
   purchaseFormFields,
   initialPurchaseForm,
 } from "../../utils/purchaseFormFields";
+
+import { purchaseSchema } from "../../utils/purchaseSchema.js";
+
 import {
   getPurchases,
   getPurchaseById,
@@ -47,11 +51,13 @@ const Purchases = () => {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.data)) return data.data;
     if (Array.isArray(data?.rows)) return data.rows;
+
     return [];
   };
 
   const normalizeDetail = data => {
     if (data?.data) return data.data;
+
     return data;
   };
 
@@ -134,11 +140,13 @@ const Purchases = () => {
 
       const data = await getPurchases();
       const purchaseList = normalizeData(data);
+
       const purchaseWithDetail = await enrichPurchasesWithDetail(purchaseList);
 
       setPurchases(purchaseWithDetail);
     } catch (error) {
       console.log("ERROR GET PURCHASES:", error);
+
       alert(error.message || "Gagal mengambil data pembelian");
     } finally {
       setLoading(false);
@@ -146,7 +154,7 @@ const Purchases = () => {
   };
 
   const openAddModal = () => {
-    resetForm();
+    resetForm(initialPurchaseForm);
     setEditId(null);
     setErrors({});
     openModal();
@@ -158,6 +166,7 @@ const Purchases = () => {
       setEditId(purchase.id);
 
       const detailResponse = await getPurchaseById(purchase.id);
+
       const detail = normalizeDetail(detailResponse);
 
       const purchaseData = detail.purchase || {};
@@ -174,6 +183,7 @@ const Purchases = () => {
       openModal();
     } catch (error) {
       console.log("ERROR GET PURCHASE DETAIL:", error);
+
       alert(error.message || "Gagal mengambil detail pembelian");
     } finally {
       setLoading(false);
@@ -182,45 +192,44 @@ const Purchases = () => {
 
   const handleCloseModal = () => {
     closeModal();
-    resetForm();
+    resetForm(initialPurchaseForm);
     setEditId(null);
     setErrors({});
-  };
-
-  const validateForm = () => {
-    const fieldErrors = {};
-
-    if (!form.product_id) {
-      fieldErrors.product_id = "Produk wajib dipilih";
-    }
-
-    if (!form.quantity || Number(form.quantity) <= 0) {
-      fieldErrors.quantity = "Jumlah wajib lebih dari 0";
-    }
-
-    if (!form.price || Number(form.price) <= 0) {
-      fieldErrors.price = "Harga beli wajib lebih dari 0";
-    }
-
-    setErrors(fieldErrors);
-
-    return Object.keys(fieldErrors).length === 0;
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const isValid = validateForm();
+    // Validasi hanya menggunakan Zod
+    const validationResult = purchaseSchema.safeParse(form);
 
-    if (!isValid) return;
+    if (!validationResult.success) {
+      const fieldErrors = {};
+
+      validationResult.error.issues.forEach(issue => {
+        const fieldName = issue.path[0];
+
+        if (fieldName && !fieldErrors[fieldName]) {
+          fieldErrors[fieldName] = issue.message;
+        }
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
+
+    // Data hasil Zod sudah berbentuk number
+    const validData = validationResult.data;
 
     const purchasePayload = {
-      supplier_id: form.supplier_id ? Number(form.supplier_id) : null,
+      supplier_id: validData.supplier_id,
       items: [
         {
-          product_id: Number(form.product_id),
-          quantity: Number(form.quantity),
-          price: Number(form.price),
+          product_id: validData.product_id,
+          quantity: validData.quantity,
+          price: validData.price,
         },
       ],
     };
@@ -238,6 +247,7 @@ const Purchases = () => {
       handleCloseModal();
     } catch (error) {
       console.log("ERROR SAVE PURCHASE:", error);
+
       alert(error.message || "Gagal menyimpan data pembelian");
     } finally {
       setLoading(false);
@@ -255,10 +265,10 @@ const Purchases = () => {
       setLoading(true);
 
       await deletePurchase(id);
-
       await fetchPurchases();
     } catch (error) {
       console.log("ERROR DELETE PURCHASE:", error);
+
       alert(error.message || "Gagal menghapus data pembelian");
     } finally {
       setLoading(false);
@@ -339,11 +349,15 @@ const Purchases = () => {
         size="lg"
         footer={
           <>
-            <Button variant="outline" onClick={handleCloseModal}>
+            <Button
+              variant="outline"
+              onClick={handleCloseModal}
+              disabled={loading}
+            >
               Batal
             </Button>
 
-            <Button variant="primary" onClick={handleSubmit}>
+            <Button variant="primary" onClick={handleSubmit} disabled={loading}>
               {loading ? "Menyimpan..." : editId ? "Update" : "Simpan"}
             </Button>
           </>

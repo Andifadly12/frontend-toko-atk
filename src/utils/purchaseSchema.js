@@ -1,29 +1,40 @@
 import { z } from "zod";
 
-const purchaseSchema = z.object({
-  invoice_number: z.string().min(1, "Nomor invoice wajib diisi"),
+export const purchaseSchema = z.object({
+  supplier_id: z.preprocess(
+    value => {
+      if (value === "" || value === null || value === undefined) {
+        return null;
+      }
 
-  product_name: z.string().min(1, "Nama produk wajib diisi"),
+      return Number(value);
+    },
+    z
+      .number({
+        message: "Supplier tidak valid",
+      })
+      .int("Supplier tidak valid")
+      .positive("Supplier tidak valid")
+      .nullable(),
+  ),
 
-  supplier: z.string().min(1, "Supplier wajib dipilih"),
+  product_id: z.coerce
+    .number({
+      message: "Produk wajib dipilih",
+    })
+    .int("Produk tidak valid")
+    .positive("Produk wajib dipilih"),
 
   quantity: z.coerce
     .number({
-      invalid_type_error: "Jumlah pembelian harus berupa angka",
+      message: "Jumlah wajib diisi",
     })
-    .min(1, "Jumlah pembelian minimal 1"),
+    .int("Jumlah harus berupa bilangan bulat")
+    .positive("Jumlah wajib lebih dari 0"),
 
-  purchase_price: z.coerce
+  price: z.coerce
     .number({
-      invalid_type_error: "Harga beli harus berupa angka",
+      message: "Harga beli wajib diisi",
     })
-    .min(1, "Harga beli wajib diisi"),
-
-  total_price: z.coerce.number().min(0),
-
-  purchase_date: z.string().min(1, "Tanggal pembelian wajib diisi"),
-
-  status: z.string().min(1, "Status wajib dipilih"),
+    .positive("Harga beli wajib lebih dari 0"),
 });
-
-export default purchaseSchema;
