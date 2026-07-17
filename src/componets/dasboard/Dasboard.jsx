@@ -1,28 +1,89 @@
-import Navbar from "../navbar/Navbar";
-import Sidebar from "../sidebar/Sidebar";
+import { useEffect, useState } from "react";
+
+import Navbar from "../Navbar";
+import Sidebar from "../Sidebar";
 import Card from "../Card";
 import Badge from "../badge";
 import Text from "../Text";
 
-import summaryCards from "../../utils/summaryCars.js";
-import topProducts from "../../utils/topProducts.js";
-import productsData from "../../data/productsData.js";
+import formatRupiah from "../../utils/formatRupiah";
 
-import useCard from "../../hooks/useCard.js";
+import { getSummaryReport, getStockReport } from "../../stores/reportsServices";
 
 const Dashboard = () => {
+  const [summary, setSummary] = useState({
+    totalSales: 0,
+    totalTransactions: 0,
+    totalProducts: 0,
+    lowStockProducts: 0,
+  });
+
+  const [stockProducts, setStockProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const handleLogout = () => {
     alert("Logout nanti disambungkan setelah fitur login dibuat");
   };
 
-  const safeSummaryCards = Array.isArray(summaryCards) ? summaryCards : [];
-  const safeTopProducts = Array.isArray(topProducts) ? topProducts : [];
-  const safeProductsData = Array.isArray(productsData) ? productsData : [];
+  const normalizeData = data => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.rows)) return data.rows;
+    return [];
+  };
 
-  const { lowStockProducts = [] } = useCard({
-    products: safeProductsData,
-    limitStock: 10,
+  useEffect(() => {
+    let isActive = true;
+
+    const loadDashboard = async () => {
+      try {
+        const [summaryResponse, stockResponse] = await Promise.all([
+          getSummaryReport(),
+          getStockReport(),
+        ]);
+
+        const summaryData = summaryResponse?.data || {};
+        const stockData = normalizeData(stockResponse);
+
+        if (isActive) {
+          setSummary({
+            totalSales: Number(summaryData.totalSales || 0),
+            totalTransactions: Number(
+              summaryData.totalTransactions ||
+                summaryData.totalTrasactions ||
+                0,
+            ),
+            totalProducts: Number(summaryData.totalProducts || 0),
+            lowStockProducts: Number(summaryData.lowStockProducts || 0),
+          });
+
+          setStockProducts(stockData);
+        }
+      } catch (error) {
+        console.log("ERROR LOAD DASHBOARD:", error);
+
+        if (isActive) {
+          alert(error.message || "Gagal mengambil data dashboard");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const lowStockProducts = stockProducts.filter(product => {
+    return Number(product.stock || 0) <= 10;
   });
+
+  const newestStockProducts = stockProducts.slice(0, 5);
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -43,109 +104,149 @@ const Dashboard = () => {
             </Text>
 
             <Text size="sm" color="muted" className="mt-1">
-              Ini adalah tampilan dashboard sementara tanpa API.
+              Ringkasan data toko berdasarkan database.
             </Text>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {safeSummaryCards.map(card => (
-              <Card
-                key={card.title}
-                title={card.title}
-                value={card.value}
-                description={card.description}
-                variant={card.variant}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
+              Loading dashboard...
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                <Card
+                  title="Total Penjualan"
+                  value={formatRupiah(summary.totalSales)}
+                  description="Total nominal penjualan"
+                  variant="success"
+                />
 
-          <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <Card variant="default" className="border-0">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <Text as="h3" size="lg" weight="bold">
-                    Produk Terlaris
-                  </Text>
+                <Card
+                  title="Jumlah Transaksi"
+                  value={summary.totalTransactions}
+                  description="Total transaksi penjualan"
+                  variant="primary"
+                />
 
-                  <Text size="sm" color="muted">
-                    Data penjualan sementara
-                  </Text>
-                </div>
+                <Card
+                  title="Total Produk"
+                  value={summary.totalProducts}
+                  description="Jumlah produk terdaftar"
+                  variant="warning"
+                />
 
-                <Badge variant="primary">Top Product</Badge>
+                <Card
+                  title="Stok Menipis"
+                  value={summary.lowStockProducts}
+                  description="Produk dengan stok ≤ 10"
+                  variant="danger"
+                />
               </div>
 
-              <div className="space-y-4">
-                {safeTopProducts.length > 0 ? (
-                  safeTopProducts.map((product, index) => (
-                    <div
-                      key={product.id}
-                      className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
-                    >
-                      <div>
-                        <Text weight="semibold">
-                          {index + 1}. {product.name}
-                        </Text>
+              <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <Card variant="default" className="border-0">
+                  <div className="mb-5 flex items-center justify-between">
+                    <div>
+                      <Text as="h3" size="lg" weight="bold">
+                        Produk Stok Rendah
+                      </Text>
 
-                        <Text size="sm" color="muted">
-                          Terjual: {product.sold}
-                        </Text>
-                      </div>
-
-                      <Text weight="bold" color="primary">
-                        {product.total}
+                      <Text size="sm" color="muted">
+                        Barang yang perlu segera ditambah
                       </Text>
                     </div>
-                  ))
-                ) : (
-                  <Text size="sm" color="muted">
-                    Belum ada data produk terlaris.
-                  </Text>
-                )}
-              </div>
-            </Card>
 
-            <Card variant="default" className="border-0">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <Text as="h3" size="lg" weight="bold">
-                    Produk Stok Rendah
-                  </Text>
+                    <Badge variant="warning">Warning</Badge>
+                  </div>
 
-                  <Text size="sm" color="muted">
-                    Barang yang perlu segera ditambah
-                  </Text>
-                </div>
+                  <div className="space-y-4">
+                    {lowStockProducts.length > 0 ? (
+                      lowStockProducts.map(product => (
+                        <div
+                          key={product.id}
+                          className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
+                        >
+                          <div>
+                            <Text weight="semibold">{product.name}</Text>
 
-                <Badge variant="warning">Warning</Badge>
-              </div>
+                            <Text size="sm" color="muted">
+                              {product.category_name || "-"}
+                            </Text>
+                          </div>
 
-              <div className="space-y-4">
-                {lowStockProducts.length > 0 ? (
-                  lowStockProducts.map(product => (
-                    <div
-                      key={product.id}
-                      className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
-                    >
-                      <Text weight="semibold">{product.name}</Text>
+                          <Badge
+                            variant={
+                              Number(product.stock || 0) <= 0
+                                ? "danger"
+                                : "warning"
+                            }
+                          >
+                            Stok: {product.stock}
+                          </Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <Text size="sm" color="muted">
+                        Tidak ada produk stok rendah.
+                      </Text>
+                    )}
+                  </div>
+                </Card>
 
-                      <Badge
-                        variant={
-                          Number(product.stock) <= 0 ? "danger" : "warning"
-                        }
-                      >
-                        Stok: {product.stock}
-                      </Badge>
+                <Card variant="default" className="border-0">
+                  <div className="mb-5 flex items-center justify-between">
+                    <div>
+                      <Text as="h3" size="lg" weight="bold">
+                        Data Stok Produk
+                      </Text>
+
+                      <Text size="sm" color="muted">
+                        Daftar produk dari database
+                      </Text>
                     </div>
-                  ))
-                ) : (
-                  <Text size="sm" color="muted">
-                    Tidak ada produk stok rendah.
-                  </Text>
-                )}
+
+                    <Badge variant="primary">Stock</Badge>
+                  </div>
+
+                  <div className="space-y-4">
+                    {newestStockProducts.length > 0 ? (
+                      newestStockProducts.map(product => (
+                        <div
+                          key={product.id}
+                          className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0"
+                        >
+                          <div>
+                            <Text weight="semibold">{product.name}</Text>
+
+                            <Text size="sm" color="muted">
+                              Harga jual: {formatRupiah(product.selling_price)}
+                            </Text>
+                          </div>
+
+                          <Badge
+                            variant={
+                              Number(product.stock || 0) <= 0
+                                ? "danger"
+                                : Number(product.stock || 0) <= 10
+                                  ? "warning"
+                                  : "success"
+                            }
+                          >
+                            {product.stock}
+                          </Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <Text size="sm" color="muted">
+                        Belum ada data produk.
+                      </Text>
+                    )}
+                  </div>
+                </Card>
               </div>
-            </Card>
-          </div>
+            </>
+          )}
         </main>
       </div>
     </div>
