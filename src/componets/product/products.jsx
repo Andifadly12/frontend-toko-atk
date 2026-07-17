@@ -13,6 +13,9 @@ import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import usePagination from "../../hooks/usePagination";
 
+import productFormFields from "../../utils/productFormFields.js";
+import productSchema from "../../utils/productSchema.js";
+
 import {
   getProducts,
   createProduct,
@@ -66,69 +69,6 @@ const Products = () => {
       };
     });
   };
-
-  const productFormFields = [
-    {
-      name: "name",
-      label: "Nama Produk",
-      type: "text",
-      placeholder: "Contoh: Pulpen Pilot",
-      required: true,
-    },
-    {
-      name: "category_id",
-      label: "Kategori",
-      type: "select",
-      placeholder: "Pilih kategori",
-      required: true,
-      options: categories.map(category => ({
-        label: category.name,
-        value: category.id,
-      })),
-    },
-    {
-      name: "sku",
-      label: "SKU",
-      type: "text",
-      placeholder: "Contoh: PLP-001",
-      required: true,
-    },
-    {
-      name: "unit",
-      label: "Satuan",
-      type: "select",
-      placeholder: "Pilih satuan",
-      required: true,
-      options: [
-        { label: "pcs", value: "pcs" },
-        { label: "box", value: "box" },
-        { label: "pack", value: "pack" },
-        { label: "lusin", value: "lusin" },
-        { label: "rim", value: "rim" },
-      ],
-    },
-    {
-      name: "purchase_price",
-      label: "Harga Beli",
-      type: "number",
-      placeholder: "Contoh: 2500",
-      required: true,
-    },
-    {
-      name: "selling_price",
-      label: "Harga Jual",
-      type: "number",
-      placeholder: "Contoh: 3000",
-      required: true,
-    },
-    {
-      name: "stock",
-      label: "Stok",
-      type: "number",
-      placeholder: "Contoh: 100",
-      required: true,
-    },
-  ];
 
   useEffect(() => {
     let isActive = true;
@@ -224,62 +164,30 @@ const Products = () => {
     setErrors({});
   };
 
-  const validateForm = () => {
-    const fieldErrors = {};
-
-    if (!form.name) {
-      fieldErrors.name = "Nama produk wajib diisi";
-    }
-
-    if (!form.category_id) {
-      fieldErrors.category_id = "Kategori wajib dipilih";
-    }
-
-    if (!form.sku) {
-      fieldErrors.sku = "SKU wajib diisi";
-    }
-
-    if (!form.unit) {
-      fieldErrors.unit = "Satuan wajib dipilih";
-    }
-
-    if (!form.purchase_price || Number(form.purchase_price) <= 0) {
-      fieldErrors.purchase_price = "Harga beli wajib lebih dari 0";
-    }
-
-    if (!form.selling_price || Number(form.selling_price) <= 0) {
-      fieldErrors.selling_price = "Harga jual wajib lebih dari 0";
-    }
-
-    if (Number(form.selling_price) < Number(form.purchase_price)) {
-      fieldErrors.selling_price =
-        "Harga jual tidak boleh lebih kecil dari harga beli";
-    }
-
-    if (form.stock === "" || Number(form.stock) < 0) {
-      fieldErrors.stock = "Stok tidak boleh kosong atau minus";
-    }
-
-    setErrors(fieldErrors);
-
-    return Object.keys(fieldErrors).length === 0;
-  };
-
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const isValid = validateForm();
+    const result = productSchema.safeParse(form);
 
-    if (!isValid) return;
+    if (!result.success) {
+      const fieldErrors = {};
+
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
 
     const productPayload = {
-      name: form.name,
-      category_id: Number(form.category_id),
-      sku: form.sku,
-      unit: form.unit,
-      purchase_price: Number(form.purchase_price),
-      selling_price: Number(form.selling_price),
-      stock: Number(form.stock),
+      name: result.data.name,
+      category_id: Number(result.data.category_id),
+      sku: result.data.sku,
+      unit: result.data.unit,
+      purchase_price: Number(result.data.purchase_price),
+      selling_price: Number(result.data.selling_price),
+      stock: Number(result.data.stock),
     };
 
     try {
@@ -405,7 +313,7 @@ const Products = () => {
         }
       >
         <Form
-          fields={productFormFields}
+          fields={productFormFields(categories)}
           form={form}
           errors={errors}
           onChange={handleChange}

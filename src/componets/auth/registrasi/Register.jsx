@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-import Button from "../Button";
-import Input from "../input";
+import Button from "../../Button";
+import Input from "../../input";
 
 import { registerUser } from "../../stores/authServices";
 
