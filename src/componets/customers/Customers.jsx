@@ -15,19 +15,14 @@ import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
-
+import { customerFormFields } from "../../utils/customerFormFields";
+import { initialCustomerForm } from "../../utils/customerFormFields";
 import {
   getCustomers,
   createCustomer,
   updateCustomer,
   deleteCustomer,
 } from "../../stores/costumersServices";
-
-const initialCustomerForm = {
-  name: "",
-  phone: "",
-  address: "",
-};
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -54,30 +49,6 @@ const Customers = () => {
     if (Array.isArray(data?.rows)) return data.rows;
     return [];
   };
-
-  const customerFormFields = [
-    {
-      name: "name",
-      label: "Nama Customer",
-      type: "text",
-      placeholder: "Contoh: Sekolah SMA 1",
-      required: true,
-    },
-    {
-      name: "phone",
-      label: "Telepon",
-      type: "text",
-      placeholder: "Contoh: 081234567890",
-      required: true,
-    },
-    {
-      name: "address",
-      label: "Alamat",
-      type: "textarea",
-      placeholder: "Contoh: Bulukumba",
-      required: true,
-    },
-  ];
 
   const fetchCustomers = async () => {
     try {
