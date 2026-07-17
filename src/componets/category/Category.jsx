@@ -15,7 +15,7 @@ import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
 
 import columnCategory from "../ColumnsCategory";
-
+import { categoryFormFields } from "../../utils/categoryFormFields.js";
 import {
   getCategories,
   createCategory,
@@ -67,40 +67,6 @@ const Category = () => {
       };
     });
   };
-
-  const categoryFormFields = [
-    {
-      name: "name",
-      label: "Nama Kategori",
-      type: "text",
-      placeholder: "Contoh: Alat Tulis",
-      required: true,
-    },
-    {
-      name: "description",
-      label: "Deskripsi",
-      type: "textarea",
-      placeholder: "Contoh: Kategori untuk alat tulis kantor",
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      placeholder: "Pilih status",
-      required: true,
-      options: [
-        { label: "Aktif", value: "active" },
-        { label: "Tidak Aktif", value: "inactive" },
-      ],
-    },
-    {
-      name: "total_products",
-      label: "Jumlah Produk",
-      type: "number",
-      placeholder: "Contoh: 10",
-      required: true,
-    },
-  ];
 
   const fetchCategories = async () => {
     try {
