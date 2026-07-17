@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const TEMP_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTgsIm5hbWUiOiJBZG1pbiBUb2tvIiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODQxNzczMjAsImV4cCI6MTc4NDI2MzcyMH0.mr23VzAiqME42K-GIiNyD3-yGAbFv_kZzGMxElEcACQ";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTgsIm5hbWUiOiJBZG1pbiBUb2tvIiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODQyNzkyMTcsImV4cCI6MTc4NDM2NTYxN30.TcFxIO42dbginDtXswWD-mKAigBngMDNGQYHkRvBrWo";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_HOST_NAME || "http://localhost:4000",

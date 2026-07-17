@@ -2,63 +2,75 @@ import Badge from "../badge";
 import Text from "../Text";
 import formatRupiah from "../../utils/formatRupiah";
 
-const ColumnsReports = [
+const columnsReports = [
   {
-    key: "date",
-    label: "Tanggal",
-    render: item => (
-      <Text size="sm" color="muted">
-        {item.date}
-      </Text>
-    ),
-  },
-  {
-    key: "invoice",
+    key: "invoice_number",
     label: "Invoice",
-    render: item => <Text weight="semibold">{item.invoice}</Text>,
+    render: item => <Text weight="semibold">{item.invoice_number}</Text>,
   },
   {
-    key: "type",
-    label: "Tipe",
-    render: item => (
-      <Badge variant={item.type === "sale" ? "success" : "warning"}>
-        {item.type === "sale" ? "Penjualan" : "Pembelian"}
-      </Badge>
-    ),
-  },
-  {
-    key: "description",
-    label: "Keterangan",
+    key: "customer_name",
+    label: "Customer",
     render: item => (
       <Text size="sm" color="muted">
-        {item.description}
+        {item.customer_name || "-"}
       </Text>
     ),
   },
   {
-    key: "total",
+    key: "cashier_name",
+    label: "Kasir",
+    render: item => (
+      <Text size="sm" color="muted">
+        {item.cashier_name || "-"}
+      </Text>
+    ),
+  },
+  {
+    key: "payment_method",
+    label: "Metode",
+    render: item => (
+      <Badge variant="primary">{item.payment_method || "-"}</Badge>
+    ),
+  },
+  {
+    key: "total_amount",
     label: "Total",
     render: item => (
       <Text size="sm" weight="semibold" color="primary">
-        {formatRupiah(item.total)}
+        {formatRupiah(item.total_amount)}
       </Text>
     ),
   },
   {
-    key: "status",
-    label: "Status",
+    key: "paid_amount",
+    label: "Dibayar",
     render: item => (
-      <Badge
-        variant={
-          item.status === "completed" || item.status === "paid"
-            ? "success"
-            : "danger"
-        }
-      >
-        {item.status}
-      </Badge>
+      <Text size="sm" color="muted">
+        {formatRupiah(item.paid_amount)}
+      </Text>
+    ),
+  },
+  {
+    key: "change_amount",
+    label: "Kembalian",
+    render: item => (
+      <Text size="sm" color="muted">
+        {formatRupiah(item.change_amount)}
+      </Text>
+    ),
+  },
+  {
+    key: "created_at",
+    label: "Tanggal",
+    render: item => (
+      <Text size="sm" color="muted">
+        {item.created_at
+          ? new Date(item.created_at).toLocaleDateString("id-ID")
+          : "-"}
+      </Text>
     ),
   },
 ];
 
-export default ColumnsReports;
+export default columnsReports;

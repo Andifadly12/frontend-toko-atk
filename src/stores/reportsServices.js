@@ -5,6 +5,7 @@ const handleApiError = (error, defaultMessage) => {
 
   const message =
     error.response?.data?.message ||
+    error.response?.data?.massage ||
     error.response?.data?.error ||
     error.message ||
     defaultMessage;
@@ -12,21 +13,18 @@ const handleApiError = (error, defaultMessage) => {
   throw new Error(message);
 };
 
-export const getDashboardReport = async () => {
+export const getSummaryReport = async () => {
   try {
-    const response = await api.get("/reports/dashboard");
+    const response = await api.get("/report/summary");
     return response.data;
   } catch (error) {
-    handleApiError(error, "Gagal mengambil laporan dashboard");
+    handleApiError(error, "Gagal mengambil laporan summary");
   }
 };
 
-export const getSalesReport = async (params = {}) => {
+export const getSalesReport = async () => {
   try {
-    const response = await api.get("/reports/sales", {
-      params,
-    });
-
+    const response = await api.get("/report/sales");
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal mengambil laporan penjualan");
@@ -35,42 +33,18 @@ export const getSalesReport = async (params = {}) => {
 
 export const getStockReport = async () => {
   try {
-    const response = await api.get("/reports/stock");
+    const response = await api.get("/report/stock");
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal mengambil laporan stok");
   }
 };
 
-export const getLowStockReport = async () => {
+export const getStockMovementsReport = async () => {
   try {
-    const response = await api.get("/reports/low-stock");
+    const response = await api.get("/report/stock-movements");
     return response.data;
   } catch (error) {
-    handleApiError(error, "Gagal mengambil laporan stok menipis");
-  }
-};
-
-export const getBestSellingProductsReport = async (params = {}) => {
-  try {
-    const response = await api.get("/reports/best-selling-products", {
-      params,
-    });
-
-    return response.data;
-  } catch (error) {
-    handleApiError(error, "Gagal mengambil laporan produk terlaris");
-  }
-};
-
-export const getProfitReport = async (params = {}) => {
-  try {
-    const response = await api.get("/reports/profit", {
-      params,
-    });
-
-    return response.data;
-  } catch (error) {
-    handleApiError(error, "Gagal mengambil laporan keuntungan");
+    handleApiError(error, "Gagal mengambil laporan pergerakan stok");
   }
 };

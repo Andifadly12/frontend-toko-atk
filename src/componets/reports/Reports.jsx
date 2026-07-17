@@ -1,34 +1,98 @@
-import Navbar from "../navbar/Navbar";
-import Sidebar from "../sidebar/Sidebar";
+import { useEffect, useState } from "react";
+
+import Navbar from "../Navbar";
+import Sidebar from "../Sidebar";
 import Card from "../Card";
 import Table from "../Table";
 import Text from "../Text";
 import Footer from "../footer";
 
-import reportsData from "../../data/reportsData";
 import columnsReports from "../columnsReports/columnsReports";
 
 import usePagination from "../../hooks/usePagination";
 import formatRupiah from "../../utils/formatRupiah";
 
+import { getSummaryReport, getSalesReport } from "../../stores/reportsServices";
+
 const Reports = () => {
-  const salesReports = reportsData.filter(report => report.type === "sale");
-  const purchaseReports = reportsData.filter(
-    report => report.type === "purchase",
-  );
+  const [reports, setReports] = useState([]);
+  const [summary, setSummary] = useState({
+    totalSales: 0,
+    totalTransactions: 0,
+    totalProducts: 0,
+    lowStockProducts: 0,
+  });
 
-  const totalSales = salesReports.reduce((total, report) => {
-    return total + Number(report.total || 0);
-  }, 0);
-
-  const totalPurchases = purchaseReports.reduce((total, report) => {
-    return total + Number(report.total || 0);
-  }, 0);
-
-  const profit = totalSales - totalPurchases;
+  const [loading, setLoading] = useState(true);
 
   const { currentPage, totalPages, paginatedData, nextPage, prevPage } =
-    usePagination(reportsData, 5);
+    usePagination(reports, 5);
+
+  const normalizeData = data => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.rows)) return data.rows;
+    return [];
+  };
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadReports = async () => {
+      try {
+        const [summaryResponse, salesResponse] = await Promise.all([
+          getSummaryReport(),
+          getSalesReport(),
+        ]);
+
+        const summaryData = summaryResponse?.data || {};
+        const salesData = normalizeData(salesResponse);
+
+        const salesReports = salesData.map(sale => ({
+          id: sale.id,
+          invoice_number: sale.invoice_number || "-",
+          customer_name: sale.customer_name || "Umum / Tanpa Customer",
+          cashier_name: sale.cashier_name || "-",
+          payment_method: sale.payment_method || "-",
+          total_amount: Number(sale.total_amount || 0),
+          paid_amount: Number(sale.paid_amount || 0),
+          change_amount: Number(sale.change_amount || 0),
+          created_at: sale.created_at,
+        }));
+
+        if (isActive) {
+          setSummary({
+            totalSales: Number(summaryData.totalSales || 0),
+            totalTransactions: Number(
+              summaryData.totalTransactions ||
+                summaryData.totalTrasactions ||
+                0,
+            ),
+            totalProducts: Number(summaryData.totalProducts || 0),
+            lowStockProducts: Number(summaryData.lowStockProducts || 0),
+          });
+
+          setReports(salesReports);
+        }
+      } catch (error) {
+        console.log("ERROR LOAD REPORTS:", error);
+
+        if (isActive) {
+          alert(error.message || "Gagal mengambil data laporan");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadReports();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -47,56 +111,62 @@ const Reports = () => {
             </Text>
 
             <Text size="sm" color="muted" className="mt-1">
-              Ringkasan laporan penjualan dan pembelian Toko ATK.
+              Ringkasan laporan penjualan dan stok Toko ATK.
             </Text>
           </div>
 
           <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <Card
               title="Total Penjualan"
-              value={formatRupiah(totalSales)}
-              description="Total transaksi penjualan"
+              value={formatRupiah(summary.totalSales)}
+              description="Total nominal penjualan"
               variant="success"
             />
 
             <Card
-              title="Total Pembelian"
-              value={formatRupiah(totalPurchases)}
-              description="Total transaksi pembelian"
+              title="Jumlah Transaksi"
+              value={summary.totalTransactions}
+              description="Total transaksi penjualan"
+              variant="primary"
+            />
+
+            <Card
+              title="Total Produk"
+              value={summary.totalProducts}
+              description="Jumlah produk terdaftar"
               variant="warning"
             />
 
             <Card
-              title="Laba / Rugi"
-              value={formatRupiah(profit)}
-              description="Penjualan dikurangi pembelian"
-              variant={profit >= 0 ? "primary" : "danger"}
-            />
-
-            <Card
-              title="Jumlah Transaksi"
-              value={reportsData.length}
-              description="Total data laporan"
-              variant="default"
+              title="Stok Menipis"
+              value={summary.lowStockProducts}
+              description="Produk dengan stok ≤ 10"
+              variant="danger"
             />
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-sm">
             <div className="mb-5">
               <Text as="h2" size="lg" weight="bold">
-                Data Laporan
+                Laporan Penjualan
               </Text>
 
               <Text size="sm" color="muted">
-                Daftar laporan transaksi penjualan dan pembelian.
+                Data laporan transaksi penjualan dari database.
               </Text>
             </div>
 
-            <Table
-              columns={columnsReports}
-              data={paginatedData}
-              emptyMessage="Belum ada data laporan"
-            />
+            {loading ? (
+              <div className="rounded-xl border border-slate-200 p-5 text-center text-sm text-slate-500">
+                Loading data laporan...
+              </div>
+            ) : (
+              <Table
+                columns={columnsReports}
+                data={paginatedData}
+                emptyMessage="Belum ada data laporan"
+              />
+            )}
           </div>
         </main>
 
