@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import useAuthStore from "../routes/authStore";
+import useAuthStore from "./authStores";
 
 const useLogout = () => {
   const navigate = useNavigate();

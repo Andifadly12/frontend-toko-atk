@@ -5,7 +5,8 @@ import Sidebar from "../Sidebar";
 import Card from "../Card";
 import Badge from "../badge";
 import Text from "../Text";
-
+import useLogout from "../../hooks/useLogout";
+import useAuthStore from "../../hooks/authStore";
 import formatRupiah from "../../utils/formatRupiah";
 
 import { getSummaryReport, getStockReport } from "../../stores/reportsServices";
@@ -21,9 +22,8 @@ const Dashboard = () => {
   const [stockProducts, setStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const handleLogout = () => {
-    alert("Logout nanti disambungkan setelah fitur login dibuat");
-  };
+  const handleLogout = useLogout();
+  const user = useAuthStore(state => state.user);
 
   const normalizeData = data => {
     if (Array.isArray(data)) return data;
@@ -93,7 +93,7 @@ const Dashboard = () => {
         <Navbar
           title="Dashboard"
           subtitle="Ringkasan data Toko ATK"
-          userName="Admin Toko"
+          userName={user?.name || "Admin Toko"}
           onLogout={handleLogout}
         />
 

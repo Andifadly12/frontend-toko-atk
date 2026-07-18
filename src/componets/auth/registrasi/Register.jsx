@@ -1,18 +1,71 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
-import Input from "../../input";
 import Button from "../../Button";
 import Card from "../../Card";
 import Badge from "../../badge";
 import Text from "../../Text";
+import Form from "../../form";
+
+import useForm from "../../../hooks/useForm";
+
+import registerSchema from "../../../utils/registerSchema";
+import registerFormFields from "../../../utils/registerFormFields";
+
+import { registerUser } from "../../../stores/authServices";
+
+const initialRegisterForm = {
+  name: "",
+  email: "",
+  password: "",
+  role: "kasir",
+};
 
 const Register = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("kasir");
+  const navigate = useNavigate();
 
-  const handleSubmit = e => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const { form, errors, setErrors, handleChange, resetForm } =
+    useForm(initialRegisterForm);
+
+  const handleSubmit = async e => {
     e.preventDefault();
+
+    const result = registerSchema.safeParse(form);
+
+    if (!result.success) {
+      const fieldErrors = {};
+
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await registerUser({
+        name: result.data.name,
+        email: result.data.email,
+        password: result.data.password,
+        role: result.data.role,
+      });
+
+      alert("Register berhasil. Silakan login.");
+
+      resetForm();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.log("ERROR REGISTER:", error);
+      alert(error.message || "Register gagal");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -122,67 +175,26 @@ const Register = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <Input
-                  label="Nama lengkap"
-                  name="name"
-                  type="text"
-                  placeholder="Masukkan nama lengkap"
+                <Form
+                  fields={registerFormFields(showPassword)}
+                  form={form}
+                  errors={errors}
+                  onChange={handleChange}
+                  onSubmit={handleSubmit}
                 />
 
-                <Input
-                  label="Email"
-                  name="email"
-                  type="email"
-                  placeholder="contoh@email.com"
-                />
-
-                <div>
-                  <Input
-                    label="Password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Minimal 6 karakter"
-                  />
-
-                  <div className="mt-2 flex justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowPassword(current => !current)}
-                    >
-                      {showPassword ? "Sembunyikan" : "Lihat Password"}
-                    </Button>
-                  </div>
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowPassword(current => !current)}
+                  >
+                    {showPassword ? "Sembunyikan Password" : "Lihat Password"}
+                  </Button>
                 </div>
 
-                <div>
-                  <Text size="sm" weight="semibold" className="mb-2">
-                    Pilih role
-                  </Text>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      type="button"
-                      variant={selectedRole === "kasir" ? "primary" : "outline"}
-                      onClick={() => setSelectedRole("kasir")}
-                      full
-                    >
-                      Kasir
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant={selectedRole === "admin" ? "primary" : "outline"}
-                      onClick={() => setSelectedRole("admin")}
-                      full
-                    >
-                      Admin
-                    </Button>
-                  </div>
-                </div>
-
-                <Button type="submit" variant="primary" full>
-                  Buat akun
+                <Button type="submit" variant="primary" full disabled={loading}>
+                  {loading ? "Memproses..." : "Buat akun"}
                 </Button>
               </form>
 
