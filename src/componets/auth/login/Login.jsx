@@ -1,18 +1,80 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
-import Input from "../../input";
 import Button from "../../Button";
 import Card from "../../Card";
 import Badge from "../../badge";
 import Text from "../../Text";
+import Form from "../../form";
+
+import useForm from "../../../hooks/useForm";
+import useAuthStore from "../../../hooks/authStore";
+
+import loginSchema from "../../../utils/loginSchema";
+import loginFormFields from "../../../utils/loginFormFields";
+
+import { loginUser } from "../../../stores/authServices";
+
+const initialLoginForm = {
+  email: "",
+  password: "",
+};
 
 const Login = () => {
+  const navigate = useNavigate();
+
+  const login = useAuthStore(state => state.login);
+
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = e => {
+  const { form, errors, setErrors, handleChange } = useForm(initialLoginForm);
+
+  const handleSubmit = async e => {
     e.preventDefault();
+
+    const result = loginSchema.safeParse(form);
+
+    if (!result.success) {
+      const fieldErrors = {};
+
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await loginUser({
+        email: result.data.email,
+        password: result.data.password,
+      });
+
+      const token = response.token || response.data?.token;
+      const user = response.user || response.data?.user;
+
+      if (!token) {
+        alert("Token tidak ditemukan dari backend");
+        return;
+      }
+
+      login({
+        token,
+        user,
+      });
+
+      navigate("/dashboard", { replace: true });
+    } catch (error) {
+      console.log("ERROR LOGIN:", error);
+      alert(error.message || "Login gagal");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -125,59 +187,46 @@ const Login = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <Input
-                  label="Email"
-                  name="email"
-                  type="email"
-                  placeholder="admin@tokoatk.com"
+                <Form
+                  fields={loginFormFields(showPassword)}
+                  form={form}
+                  errors={errors}
+                  onChange={handleChange}
+                  onSubmit={handleSubmit}
                 />
 
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <Text size="sm" weight="semibold">
-                      Password
+                <div className="flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={e => setRememberMe(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 accent-blue-600"
+                    />
+
+                    <Text size="sm" color="muted">
+                      Ingat saya
                     </Text>
+                  </label>
 
-                    <Link
-                      to="/forgot-password"
-                      className="text-xs font-semibold text-blue-600 transition hover:text-blue-700"
-                    >
-                      Lupa password?
-                    </Link>
-                  </div>
-
-                  <Input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Masukkan password"
-                  />
-
-                  <div className="mt-2 flex justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowPassword(current => !current)}
-                    >
-                      {showPassword ? "Sembunyikan" : "Lihat Password"}
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowPassword(current => !current)}
+                  >
+                    {showPassword ? "Sembunyikan" : "Lihat"}
+                  </Button>
                 </div>
 
-                <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={e => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 accent-blue-600"
-                  />
+                <Link
+                  to="/forgot-password"
+                  className="block text-right text-xs font-semibold text-blue-600 transition hover:text-blue-700"
+                >
+                  Lupa password?
+                </Link>
 
-                  <Text size="sm" color="muted">
-                    Ingat saya di perangkat ini
-                  </Text>
-                </label>
-
-                <Button type="submit" variant="primary" full>
-                  Login
+                <Button type="submit" variant="primary" full disabled={loading}>
+                  {loading ? "Memproses..." : "Login"}
                 </Button>
               </form>
 

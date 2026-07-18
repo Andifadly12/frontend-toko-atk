@@ -5,6 +5,7 @@ const handleApiError = (error, defaultMessage) => {
 
   const message =
     error.response?.data?.message ||
+    error.response?.data?.massage ||
     error.response?.data?.error ||
     error.message ||
     defaultMessage;
@@ -14,7 +15,7 @@ const handleApiError = (error, defaultMessage) => {
 
 export const loginUser = async loginData => {
   try {
-    const response = await api.post("/login", loginData);
+    const response = await api.post("/auth/login", loginData);
     return response.data;
   } catch (error) {
     handleApiError(error, "Gagal login");
