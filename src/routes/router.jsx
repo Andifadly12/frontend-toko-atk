@@ -9,11 +9,16 @@ import Sales from "../componets/sales";
 import Purchases from "../componets/purchases";
 import Reports from "../componets/reports";
 import Login from "../componets/auth/login";
+import Register from "../componets/auth/registrasi";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: "register",
+    Component: Register,
   },
   {
     path: "/login",

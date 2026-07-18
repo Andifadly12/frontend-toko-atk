@@ -1,160 +1,209 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router";
 
-import Button from "../../Button";
 import Input from "../../input";
-
-import { registerUser } from "../../stores/authServices";
+import Button from "../../Button";
+import Card from "../../Card";
+import Badge from "../../badge";
+import Text from "../../Text";
 
 const Register = () => {
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("kasir");
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "kasir",
-  });
-
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = e => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-    });
-  };
-
-  const validateForm = () => {
-    const fieldErrors = {};
-
-    if (!form.name.trim()) {
-      fieldErrors.name = "Nama wajib diisi";
-    }
-
-    if (!form.email.trim()) {
-      fieldErrors.email = "Email wajib diisi";
-    }
-
-    if (!form.password.trim()) {
-      fieldErrors.password = "Password wajib diisi";
-    }
-
-    if (form.password.length < 6) {
-      fieldErrors.password = "Password minimal 6 karakter";
-    }
-
-    if (!form.role) {
-      fieldErrors.role = "Role wajib dipilih";
-    }
-
-    setErrors(fieldErrors);
-
-    return Object.keys(fieldErrors).length === 0;
-  };
-
-  const handleSubmit = async e => {
+  const handleSubmit = e => {
     e.preventDefault();
-
-    const isValid = validateForm();
-    if (!isValid) return;
-
-    try {
-      setLoading(true);
-
-      await registerUser({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        role: form.role,
-      });
-
-      alert("Register berhasil, silakan login");
-      navigate("/login");
-    } catch (error) {
-      console.log("ERROR REGISTER:", error);
-      alert(error.message || "Register gagal");
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-slate-800">Register</h1>
-          <p className="mt-2 text-sm text-slate-500">Buat akun baru Toko ATK</p>
-        </div>
+    <div className="relative flex min-h-screen overflow-hidden bg-slate-950">
+      <div className="absolute -left-24 -top-24 h-80 w-80 animate-pulse rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="absolute -bottom-32 right-0 h-96 w-96 animate-pulse rounded-full bg-indigo-500/20 blur-3xl" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Nama"
-            name="name"
-            type="text"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Masukkan nama"
-            error={errors.name}
-          />
+      <div className="relative z-10 flex min-h-screen w-full">
+        <section className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-gradient-to-br from-blue-700 via-indigo-700 to-slate-950 p-12 text-white lg:flex">
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl font-bold text-blue-700 shadow-xl">
+              ATK
+            </div>
 
-          <Input
-            label="Email"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Masukkan email"
-            error={errors.email}
-          />
+            <div>
+              <Text as="h1" weight="bold" className="text-white">
+                Toko ATK
+              </Text>
 
-          <Input
-            label="Password"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Masukkan password"
-            error={errors.password}
-          />
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Role
-            </label>
-
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-            >
-              <option value="kasir">Kasir</option>
-              <option value="admin">Admin</option>
-            </select>
-
-            {errors.role && (
-              <p className="mt-1 text-sm text-red-600">{errors.role}</p>
-            )}
+              <Text size="sm" className="text-blue-100">
+                Point of Sale System
+              </Text>
+            </div>
           </div>
 
-          <Button type="submit" variant="primary" full disabled={loading}>
-            {loading ? "Memproses..." : "Register"}
-          </Button>
-        </form>
+          <div className="relative z-10 max-w-lg">
+            <Badge variant="success">Pendaftaran akun baru</Badge>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
-          Sudah punya akun?{" "}
-          <Link to="/login" className="font-semibold text-blue-600">
-            Login
-          </Link>
-        </p>
+            <Text
+              as="h2"
+              weight="bold"
+              className="mt-6 text-4xl leading-tight text-white xl:text-5xl"
+            >
+              Mulai kelola toko dengan lebih mudah.
+            </Text>
+
+            <Text className="mt-5 max-w-md leading-7 text-blue-100">
+              Kelola produk, supplier, pembelian, penjualan, dan laporan dalam
+              satu sistem.
+            </Text>
+
+            <div className="mt-8 space-y-4">
+              <Card variant="default" className="border-white/10 bg-white/10">
+                <Text weight="semibold" className="text-white">
+                  Kelola stok
+                </Text>
+
+                <Text size="sm" className="mt-1 text-blue-100">
+                  Pantau stok barang dengan mudah.
+                </Text>
+              </Card>
+
+              <Card variant="default" className="border-white/10 bg-white/10">
+                <Text weight="semibold" className="text-white">
+                  Laporan transaksi
+                </Text>
+
+                <Text size="sm" className="mt-1 text-blue-100">
+                  Pantau perkembangan penjualan.
+                </Text>
+              </Card>
+
+              <Card variant="default" className="border-white/10 bg-white/10">
+                <Text weight="semibold" className="text-white">
+                  Data lebih aman
+                </Text>
+
+                <Text size="sm" className="mt-1 text-blue-100">
+                  Akses sesuai role pengguna.
+                </Text>
+              </Card>
+            </div>
+          </div>
+
+          <Text size="sm" className="relative z-10 text-blue-200">
+            © 2026 Toko ATK. All rights reserved.
+          </Text>
+        </section>
+
+        <section className="flex w-full items-center justify-center bg-slate-50 px-5 py-10 lg:w-1/2">
+          <div className="w-full max-w-md">
+            <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-500/30">
+                ATK
+              </div>
+
+              <div>
+                <Text weight="bold">Toko ATK</Text>
+
+                <Text size="sm" color="muted">
+                  Point of Sale System
+                </Text>
+              </div>
+            </div>
+
+            <Card variant="default" className="rounded-3xl border-slate-200">
+              <div className="mb-7">
+                <Badge variant="primary">Bergabung dengan kami</Badge>
+
+                <Text as="h2" weight="bold" className="mt-4 text-3xl">
+                  Buat akun baru
+                </Text>
+
+                <Text size="sm" color="muted" className="mt-2 leading-6">
+                  Lengkapi data berikut untuk membuat akun Toko ATK.
+                </Text>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <Input
+                  label="Nama lengkap"
+                  name="name"
+                  type="text"
+                  placeholder="Masukkan nama lengkap"
+                />
+
+                <Input
+                  label="Email"
+                  name="email"
+                  type="email"
+                  placeholder="contoh@email.com"
+                />
+
+                <div>
+                  <Input
+                    label="Password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Minimal 6 karakter"
+                  />
+
+                  <div className="mt-2 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowPassword(current => !current)}
+                    >
+                      {showPassword ? "Sembunyikan" : "Lihat Password"}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Text size="sm" weight="semibold" className="mb-2">
+                    Pilih role
+                  </Text>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant={selectedRole === "kasir" ? "primary" : "outline"}
+                      onClick={() => setSelectedRole("kasir")}
+                      full
+                    >
+                      Kasir
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant={selectedRole === "admin" ? "primary" : "outline"}
+                      onClick={() => setSelectedRole("admin")}
+                      full
+                    >
+                      Admin
+                    </Button>
+                  </div>
+                </div>
+
+                <Button type="submit" variant="primary" full>
+                  Buat akun
+                </Button>
+              </form>
+
+              <div className="my-6 flex items-center gap-4">
+                <div className="h-px flex-1 bg-slate-200" />
+
+                <Text size="sm" color="muted">
+                  Sudah memiliki akun?
+                </Text>
+
+                <div className="h-px flex-1 bg-slate-200" />
+              </div>
+
+              <Link to="/login">
+                <Button type="button" variant="outline" full>
+                  Login ke akun
+                </Button>
+              </Link>
+            </Card>
+          </div>
+        </section>
       </div>
     </div>
   );
