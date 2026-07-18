@@ -8,11 +8,16 @@ import Suppliers from "../componets/suppliers";
 import Sales from "../componets/sales";
 import Purchases from "../componets/purchases";
 import Reports from "../componets/reports";
+import Login from "../componets/auth/login";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: "/login",
+    Component: Login,
   },
   {
     path: "/dashboard",
