@@ -1,7 +1,5 @@
 import axios from "axios";
-
-const TEMP_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTgsIm5hbWUiOiJBZG1pbiBUb2tvIiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODQyNzkyMTcsImV4cCI6MTc4NDM2NTYxN30.TcFxIO42dbginDtXswWD-mKAigBngMDNGQYHkRvBrWo";
+import useAuthStore from "../hooks/authStore";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_HOST_NAME || "http://localhost:4000",
@@ -12,9 +10,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   config => {
-    const tokenFromStorage = localStorage.getItem("token");
-
-    const token = tokenFromStorage || TEMP_TOKEN;
+    const token = useAuthStore.getState().token;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -23,6 +19,20 @@ api.interceptors.request.use(
     return config;
   },
   error => {
+    return Promise.reject(error);
+  },
+);
+
+api.interceptors.response.use(
+  response => {
+    return response;
+  },
+  error => {
+    if (error.response?.status === 401) {
+      useAuthStore.getState().logout();
+      window.location.href = "/login";
+    }
+
     return Promise.reject(error);
   },
 );
