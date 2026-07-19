@@ -8,7 +8,8 @@ import Text from "../Text";
 import Footer from "../footer";
 
 import columnsReports from "../columnsReports/columnsReports";
-
+import useLogout from "../../hooks/useLogout";
+import useAuthStore from "../../hooks/authStore";
 import usePagination from "../../hooks/usePagination";
 import formatRupiah from "../../utils/formatRupiah";
 
@@ -93,15 +94,18 @@ const Reports = () => {
       isActive = false;
     };
   }, []);
-
+  const handleLogout = useLogout();
+  const user = useAuthStore(state => state.user);
   return (
     <div className="flex min-h-screen bg-slate-100">
       <Sidebar />
 
       <div className="flex min-h-screen flex-1 flex-col">
         <Navbar
-          userName="Admin Toko"
-          onLogout={() => alert("Logout nanti disambungkan")}
+          title="Dashboard"
+          subtitle="Ringkasan data Toko ATK"
+          userName={user?.name || "Admin Toko"}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-6">
