@@ -46,15 +46,17 @@ const Register = () => {
       return;
     }
 
+    const registerPayload = {
+      name: result.data.name,
+      email: result.data.email,
+      password: result.data.password,
+      role: result.data.role,
+    };
+
     try {
       setLoading(true);
 
-      await registerUser({
-        name: result.data.name,
-        email: result.data.email,
-        password: result.data.password,
-        role: result.data.role,
-      });
+      await registerUser(registerPayload);
 
       alert("Register berhasil. Silakan login.");
 
@@ -176,22 +178,14 @@ const Register = () => {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <Form
-                  fields={registerFormFields(showPassword)}
+                  fields={registerFormFields(showPassword, () =>
+                    setShowPassword(current => !current),
+                  )}
                   form={form}
                   errors={errors}
                   onChange={handleChange}
                   onSubmit={handleSubmit}
                 />
-
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowPassword(current => !current)}
-                  >
-                    {showPassword ? "Sembunyikan Password" : "Lihat Password"}
-                  </Button>
-                </div>
 
                 <Button type="submit" variant="primary" full disabled={loading}>
                   {loading ? "Memproses..." : "Buat akun"}

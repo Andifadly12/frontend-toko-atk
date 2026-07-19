@@ -98,6 +98,7 @@ const Form = ({
             error={errors[field.name]}
             required={field.required || false}
             disabled={field.disabled || false}
+            rightElement={field.rightElement || null}
           />
         );
       })}
