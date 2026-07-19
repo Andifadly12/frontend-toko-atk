@@ -20,7 +20,8 @@ import {
 } from "../../utils/purchaseFormFields";
 
 import { purchaseSchema } from "../../utils/purchaseSchema.js";
-
+import useLogout from "../../hooks/useLogout";
+import useAuthStore from "../../hooks/authStore";
 import {
   getPurchases,
   getPurchaseById,
@@ -274,6 +275,8 @@ const Purchases = () => {
       setLoading(false);
     }
   };
+  const handleLogout = useLogout();
+  const user = useAuthStore(state => state.user);
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -281,8 +284,10 @@ const Purchases = () => {
 
       <div className="flex min-h-screen flex-1 flex-col">
         <Navbar
-          userName="Admin Toko"
-          onLogout={() => alert("Logout nanti disambungkan")}
+          title="Dashboard"
+          subtitle="Ringkasan data Toko ATK"
+          userName={user?.name || "Admin Toko"}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-6">
