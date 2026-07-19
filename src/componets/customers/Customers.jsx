@@ -23,7 +23,8 @@ import {
   updateCustomer,
   deleteCustomer,
 } from "../../stores/costumersServices";
-
+import useLogout from "../../hooks/useLogout";
+import useAuthStore from "../../hooks/authStore";
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -205,6 +206,8 @@ const Customers = () => {
       setLoading(false);
     }
   };
+  const handleLogout = useLogout();
+  const user = useAuthStore(state => state.user);
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -212,8 +215,10 @@ const Customers = () => {
 
       <div className="flex min-h-screen flex-1 flex-col">
         <Navbar
-          userName="Admin Toko"
-          onLogout={() => alert("Logout nanti disambungkan")}
+          title="Dashboard"
+          subtitle="Ringkasan data Toko ATK"
+          userName={user?.name || "Admin Toko"}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-6">
