@@ -15,7 +15,8 @@ import usePagination from "../../hooks/usePagination";
 
 import productFormFields from "../../utils/productFormFields.js";
 import productSchema from "../../utils/productSchema.js";
-
+import useLogout from "../../hooks/useLogout";
+import useAuthStore from "../../hooks/authStore";
 import {
   getProducts,
   createProduct,
@@ -227,6 +228,8 @@ const Products = () => {
       setLoading(false);
     }
   };
+  const handleLogout = useLogout();
+  const user = useAuthStore(state => state.user);
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -234,8 +237,10 @@ const Products = () => {
 
       <div className="flex min-h-screen flex-1 flex-col">
         <Navbar
-          userName="Admin Toko"
-          onLogout={() => alert("Logout nanti disambungkan")}
+          title="Dashboard"
+          subtitle="Ringkasan data Toko ATK"
+          userName={user?.name || "Admin Toko"}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-6">
