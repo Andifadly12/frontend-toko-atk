@@ -13,7 +13,8 @@ import useForm from "../../hooks/useForm";
 import useModal from "../../hooks/useModal";
 import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
-
+import useLogout from "../../hooks/useLogout";
+import useAuthStore from "../../hooks/authStore";
 import columnCategory from "../ColumnsCategory";
 import { categoryFormFields } from "../../utils/categoryFormFields.js";
 import {
@@ -229,6 +230,8 @@ const Category = () => {
       setLoading(false);
     }
   };
+  const handleLogout = useLogout();
+  const user = useAuthStore(state => state.user);
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -236,8 +239,10 @@ const Category = () => {
 
       <div className="flex min-h-screen flex-1 flex-col">
         <Navbar
-          userName="Admin Toko"
-          onLogout={() => alert("Logout nanti disambungkan")}
+          title="Dashboard"
+          subtitle="Ringkasan data Toko ATK"
+          userName={user?.name || "Admin Toko"}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-6">
